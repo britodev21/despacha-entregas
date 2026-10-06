@@ -1,0 +1,43 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text);
+}
+
+.mark {
+  flex-shrink: 0;
+}
+
+.wordmark {
+  font-weight: var(--weight-extrabold);
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+.sm .mark {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.sm .wordmark {
+  font-size: var(--text-sm);
+}
+
+.md .mark {
+  width: 2rem;
+  height: 2rem;
+}
+
+.md .wordmark {
+  font-size: var(--text-lg);
+}
+
+.lg .mark {
+  width: 3rem;
+  height: 3rem;
+}
+
+.lg .wordmark {
+  font-size: var(--text-2xl);
+}

@@ -1,0 +1,45 @@
+.spinner {
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 0.7s linear infinite;
+}
+
+.sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.md {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.lg {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-width: 3px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* O reset global desliga animações com movimento reduzido, mas o spinner
+   é feedback essencial: troca a rotação por uma pulsação lenta. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    border-right-color: currentColor;
+    animation: pulse 1.6s ease-in-out infinite !important;
+  }
+
+  @keyframes pulse {
+    50% {
+      opacity: 0.35;
+    }
+  }
+}

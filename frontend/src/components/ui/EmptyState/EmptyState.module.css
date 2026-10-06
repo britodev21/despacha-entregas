@@ -1,0 +1,50 @@
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 28rem;
+  margin-inline: auto;
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+}
+
+.iconWrap {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin-bottom: var(--space-1);
+  border-radius: var(--radius-full);
+}
+
+.neutral {
+  background-color: var(--color-brand-soft);
+  color: var(--color-on-brand-soft);
+}
+
+.danger {
+  background-color: var(--color-danger-soft);
+  color: var(--color-on-danger-soft);
+}
+
+.icon {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.title {
+  font-size: var(--text-xl);
+}
+
+.description {
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
