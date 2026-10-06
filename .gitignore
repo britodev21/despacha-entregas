@@ -1,0 +1,54 @@
+# ============================================================
+# DESPACHA — .gitignore
+# Repositório PÚBLICO: nada de segredos, dados reais ou infra.
+# ============================================================
+
+# --- Segredos e configuração local --------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+secrets/
+*.secret
+
+# --- Dados de runtime ----------------------------------------
+uploads/
+storage/
+backups/
+*.dump
+*.sql.gz
+*.backup
+*.log
+logs/
+
+# --- Python --------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# --- Node / Frontend -----------------------------------------
+node_modules/
+dist/
+.vite/
+coverage/
+
+# --- Editor / SO ---------------------------------------------
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

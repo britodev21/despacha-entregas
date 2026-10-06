@@ -1,0 +1,8 @@
+# Normaliza fins de linha: scripts com CRLF quebram no Linux (VPS).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.woff2 binary
