@@ -25,27 +25,72 @@ O DESPACHA busca oferecer uma experiência simples para o usuário final, manten
 
 ### Frontend
 
-* React
-* Vite
-* JavaScript
-* CSS
+* React + Vite (JavaScript)
+* React Router
+* Axios
+* CSS puro com CSS Modules e design tokens (CSS Variables)
 
 ### Backend
 
-* Python
+* Python 3.14 (gerenciado com [uv](https://docs.astral.sh/uv/))
 * FastAPI
-* SQLAlchemy
+* SQLAlchemy 2 + Alembic (migrations)
 * Pydantic
 
 ### Banco de dados
 
-* PostgreSQL
+* PostgreSQL 18
 
 ## 🏗️ Status
 
-🚧 **Em desenvolvimento**
+🚧 **Em desenvolvimento** — Fase 1 (Fundação) concluída.
 
 O projeto está sendo desenvolvido inicialmente como um MVP, com evolução progressiva das funcionalidades.
+As decisões de arquitetura e o plano de fases estão em [docs/ARQUITETURA.md](docs/ARQUITETURA.md).
+
+## 💻 Rodando localmente
+
+Pré-requisitos: Python 3.14+, [uv](https://docs.astral.sh/uv/), Node.js 22+ e PostgreSQL 18.
+
+### 1. Banco de dados
+
+Crie os usuários e os bancos (desenvolvimento e testes) como superusuário do PostgreSQL.
+Gere senhas fortes e **não** as versione:
+
+```bash
+cd backend
+psql -U postgres -v owner_password='<SENHA_OWNER>' -v app_password='<SENHA_APP>'      -v db_name='despacha' -f scripts/setup_db.sql
+psql -U postgres -v owner_password='<SENHA_OWNER>' -v app_password='<SENHA_APP>'      -v db_name='despacha_test' -f scripts/setup_db.sql
+```
+
+### 2. Backend
+
+```bash
+cd backend
+cp .env.example .env        # preencha com as senhas criadas acima
+uv sync                     # cria o ambiente e instala dependências
+uv run alembic upgrade head # aplica as migrations
+uv run pytest               # roda os testes
+uv run uvicorn app.main:app --reload
+```
+
+API em `http://127.0.0.1:8000` — documentação interativa em `/api/docs` (desligada em produção).
+
+Criar uma empresa (não há cadastro público):
+
+```bash
+uv run python -m app.cli create-company --name "Minha Empresa"
+```
+
+### 3. Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+App em `http://127.0.0.1:5173`. O Vite encaminha `/api` para o backend (mesma origem, sem CORS).
 
 ## 🔐 Foco
 

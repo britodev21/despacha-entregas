@@ -3,6 +3,8 @@
 > Documento vivo. Registra o entendimento do problema, as decisões técnicas e o
 > porquê de cada uma. Decisões marcadas como **[PENDENTE]** aguardam validação.
 >
+> Status: decisões da Fase 0 validadas em 2026-10-06.
+>
 > Este repositório é público: nenhum dado de infraestrutura real (IP, domínio,
 > usuários, portas, caminhos de backup) deve aparecer aqui. Use placeholders.
 
@@ -45,7 +47,7 @@ Pontos que o briefing não responde e que mudam a arquitetura:
 |---|---|---|---|
 | A1 | Um deploy atende **vários negócios** (SaaS multi-tenant) ou um deploy por negócio? | Modelagem inteira, segurança (IDOR entre empresas) | Multi-tenant desde o dia 1 (ADR-01) |
 | A2 | Entregador **sempre** usa o app ou às vezes o operador opera por ele? | Se entregador é tabela própria ou usuário | Entregador = usuário com papel; operador também pode mudar status (ADR-06) |
-| A3 | Como o entregador faz login? Nem todo motoboy tem e-mail. | Campo de login | **[PENDENTE]** e-mail ou telefone |
+| A3 | Como o entregador faz login? Nem todo motoboy tem e-mail. | Campo de login | **Decidido:** e-mail **ou** telefone (ao menos um obrigatório) |
 | A4 | Um entregador leva **várias entregas na mesma saída**? | Modelo de rastreamento | Sim, assumir que sim (ADR-08) |
 | A5 | De onde vêm latitude/longitude do endereço? | Custo (API de geocoding), complexidade | Opcional no MVP; navegação usa o endereço em texto (ADR-09) |
 | A6 | Permissões configuráveis ou papéis fixos? | Tabelas de roles/permissions | Papéis fixos em código (ADR-05) |
@@ -277,7 +279,7 @@ Formato: **Problema → Decisão → Por quê → Alternativas → Trade-offs.**
   - Botão "Ligar para cliente" via `tel:`.
 - **Mapa do operador:** Leaflet + tiles OpenStreetMap em dev; em produção, um
   provedor de tiles com plano gratuito (a política do OSM proíbe uso comercial
-  intenso dos tiles oficiais). **[PENDENTE]** confirmar.
+  intenso dos tiles oficiais). Confirmado.
 - **Opcional (fase 3):** preencher endereço pelo CEP (ViaCEP, gratuito).
 
 ### ADR-10 — Arquivos (fotos/assinaturas) em disco local atrás de uma interface
@@ -293,10 +295,10 @@ Formato: **Problema → Decisão → Por quê → Alternativas → Trade-offs.**
 - **Alternativa:** object storage S3-compatível — trocar a implementação depois
   sem tocar no resto. Backups precisam incluir a pasta de uploads.
 
-### ADR-11 — Sem Docker no MVP **[PENDENTE]**
+### ADR-11 — Sem Docker no MVP
 
 - **Contexto:** PostgreSQL já instalado localmente; deploy em um único VPS.
-- **Decisão proposta:** dev com PostgreSQL local; produção com serviços nativos
+- **Decisão:** dev com PostgreSQL local; produção com serviços nativos
   (Nginx, PostgreSQL, Uvicorn via systemd).
 - **Por quê:** menos camadas para aprender e depurar; você aprende Linux, systemd
   e Nginx de verdade.
@@ -344,8 +346,9 @@ Formato: **Problema → Decisão → Por quê → Alternativas → Trade-offs.**
 - **API versionada:** `/api/v1/...`.
 - **Idioma:** código, tabelas e enums em inglês; interface em português.
 - **Gerenciador Python:** `uv` (lockfile reproduzível, instala a versão do
-  Python) **[PENDENTE]** — alternativa: `venv` + `pip` + `requirements.txt`.
-- **Versão do Python:** fixar a mesma versão que o VPS terá (ex.: 3.12/3.13).
+  Python). Alternativa descartada: `venv` + `pip` + `requirements.txt`.
+- **Versão do Python:** 3.14, fixada em `backend/.python-version`. O `uv`
+  instala exatamente essa versão no VPS, independente do Python do sistema.
 - **Testes:** `pytest` contra um PostgreSQL de teste real (SQLite se comporta
   diferente). Testes de autorização (IDOR, papéis) são obrigatórios.
 
@@ -380,8 +383,8 @@ assinatura / nome do recebedor, retenção de localização), `next_delivery_num
 `is_active`, `created_at`, `updated_at`
 
 ### users
-`id`, `company_id`, `name`, `email` **[PENDENTE: ou telefone]** (único),
-`phone`, `password_hash`, `role` (`ADMIN | OPERATOR | DELIVERER`), `is_active`,
+`id`, `company_id`, `name`, `email`? (único), `phone`? (único) — ao menos um
+dos dois é obrigatório (CHECK no banco); o login aceita qualquer um, `password_hash`, `role` (`ADMIN | OPERATOR | DELIVERER`), `is_active`,
 `failed_login_count`, `locked_until`, `last_login_at`, `password_changed_at`,
 `created_at`, `updated_at`
 
@@ -591,7 +594,20 @@ Formato único de erro da API:
   `prefers-reduced-motion` respeitado.
 - Status sempre com **cor + texto + ícone** (nunca só cor).
 
-Tokens finais definidos na Fase 1.
+### Decisões da Fase 1
+
+- **Fonte:** Manrope (variável), **hospedada junto com o app** via
+  `@fontsource-variable`. Google Fonts por CDN enviaria o IP de cada usuário
+  ao Google (LGPD) e exigiria liberar outro domínio na CSP.
+- **Laranja do tema claro:** `#CC4A0C`. O laranja "padrão" `#EA580C` com texto
+  branco dá 3.56:1 e reprova no WCAG AA (mínimo 4.5:1); `#CC4A0C` dá 4.61:1.
+- **Tema escuro:** botão principal `#FB923C` com texto escuro (8.19:1), em vez
+  de texto branco.
+- **Bordas de input:** 3:1 contra o fundo (WCAG 1.4.11), nos dois temas.
+- **CSS:** tokens em duas camadas (primitivos → semânticos) em
+  `frontend/src/styles/tokens.css`; componentes usam só os semânticos.
+- **Tema sem "flash":** `public/theme-init.js` aplica o tema antes do React
+  carregar (arquivo externo, compatível com CSP `script-src 'self'`).
 
 ---
 
