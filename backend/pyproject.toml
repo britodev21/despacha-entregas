@@ -1,0 +1,53 @@
+[project]
+name = "despacha-backend"
+version = "0.1.0"
+description = "API do DESPACHA — gestão de entregas simples e eficiente"
+requires-python = ">=3.14"
+dependencies = [
+    "alembic>=1.20.0",
+    "fastapi>=0.142.2",
+    "psycopg[binary]>=3.3.6",
+    "pydantic-settings>=2.15.0",
+    "sqlalchemy>=2.0",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.13.1",
+    "pytest>=9.1.1",
+    "ruff>=0.16.10",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+# E/F: erros básicos | I: ordem de imports | B: bugs comuns
+# UP: sintaxe moderna | S: segurança (bandit) | SIM: simplificações
+select = ["E", "F", "I", "B", "UP", "S", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+# assert é o idioma do pytest; senhas fictícias em testes são esperadas
+"tests/**" = ["S101", "S105", "S106"]
+
+[tool.ruff.lint.isort]
+# A pasta local alembic/ (migrations) confunde o isort: alembic é lib externa.
+known-third-party = ["alembic"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.alembic]
+script_location = "%(here)s/alembic"
+# Prefixo com data facilita ler o histórico de migrations em ordem.
+file_template = "%%(year)d%%(month).2d%%(day).2d_%%(rev)s_%%(slug)s"
+prepend_sys_path = ["."]
+
+[[tool.alembic.post_write_hooks]]
+name = "ruff"
+type = "module"
+module = "ruff"
+options = "format REVISION_SCRIPT_FILENAME"
