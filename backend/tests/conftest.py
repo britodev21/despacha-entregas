@@ -26,6 +26,9 @@ os.environ["APP_ENV"] = "test"
 os.environ["DATABASE_URL"] = _env["TEST_DATABASE_URL"]
 os.environ["MIGRATIONS_DATABASE_URL"] = _env["TEST_MIGRATIONS_DATABASE_URL"]
 
+import uuid  # noqa: E402
+from datetime import UTC, datetime, timedelta  # noqa: E402
+
 import pytest  # noqa: E402
 from alembic import command  # noqa: E402
 from alembic.config import Config  # noqa: E402
@@ -34,7 +37,15 @@ from sqlalchemy import create_engine, text  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 from app.core.db import engine, get_db  # noqa: E402
+from app.core.permissions import Role  # noqa: E402
+from app.core.rate_limit import login_limiter, refresh_limiter  # noqa: E402
+from app.core.security import hash_password  # noqa: E402
 from app.main import app  # noqa: E402
+from app.modules.companies.models import Company  # noqa: E402
+from app.modules.companies.service import create_company  # noqa: E402
+from app.modules.users.models import User  # noqa: E402
+
+PASSWORD = "senha-de-teste-forte-123"
 
 BACKEND_DIR = Path(__file__).parents[1]
 
@@ -43,9 +54,11 @@ def _reset_schema() -> None:
     """Remove todas as tabelas do banco de teste (como dono do schema)."""
     owner_engine = create_engine(os.environ["MIGRATIONS_DATABASE_URL"])
     with owner_engine.begin() as conn:
-        tables = conn.execute(
-            text("SELECT tablename FROM pg_tables WHERE schemaname = 'public'")
-        ).scalars()
+        tables = (
+            conn.execute(text("SELECT tablename FROM pg_tables WHERE schemaname = 'public'"))
+            .scalars()
+            .all()
+        )
         for table in tables:
             conn.execute(text(f'DROP TABLE IF EXISTS "{table}" CASCADE'))
     owner_engine.dispose()
@@ -76,6 +89,81 @@ def db() -> Session:
 @pytest.fixture
 def client(db: Session) -> TestClient:
     app.dependency_overrides[get_db] = lambda: db
-    with TestClient(app) as test_client:
+    # https: o cookie de refresh é Secure e só é devolvido em conexões HTTPS.
+    with TestClient(app, base_url="https://testserver") as test_client:
         yield test_client
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limits() -> None:
+    # Os limitadores vivem em memória; cada teste começa do zero.
+    login_limiter.reset()
+    refresh_limiter.reset()
+
+
+# ------------------------------------------------------------- fábricas
+
+
+@pytest.fixture
+def company(db: Session) -> Company:
+    return create_company(db, name="Empresa A")
+
+
+@pytest.fixture
+def other_company(db: Session) -> Company:
+    return create_company(db, name="Empresa B")
+
+
+@pytest.fixture
+def make_user(db: Session, company: Company):
+    def _make(
+        role: Role = Role.ADMIN,
+        *,
+        email: str | None = None,
+        phone: str | None = None,
+        company: Company = company,
+        is_active: bool = True,
+        password: str = PASSWORD,
+    ) -> User:
+        if email is None and phone is None:
+            email = f"{uuid.uuid4().hex[:10]}@teste.com"
+        user = User(
+            company_id=company.id,
+            name=f"Usuário {role.value.title()}",
+            email=email,
+            phone=phone,
+            role=role,
+            password_hash=hash_password(password),
+            is_active=is_active,
+            # No passado: tokens criados durante o teste ficam depois dela.
+            password_changed_at=datetime.now(UTC) - timedelta(hours=1),
+        )
+        db.add(user)
+        db.commit()
+        return user
+
+    return _make
+
+
+@pytest.fixture
+def login(client: TestClient):
+    """Faz login e devolve o JSON da resposta (cookie fica no client)."""
+
+    def _login(user: User, password: str = PASSWORD) -> dict:
+        response = client.post(
+            "/api/v1/auth/login",
+            json={"identifier": user.email or user.phone, "password": password},
+        )
+        assert response.status_code == 200, response.text
+        return response.json()
+
+    return _login
+
+
+@pytest.fixture
+def auth_headers(login):
+    def _headers(user: User) -> dict[str, str]:
+        return {"Authorization": f"Bearer {login(user)['access_token']}"}
+
+    return _headers

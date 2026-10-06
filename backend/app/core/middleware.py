@@ -4,7 +4,8 @@ Middleware ASGI "puro" (sem BaseHTTPMiddleware): mais leve e sem os problemas
 conhecidos do BaseHTTPMiddleware com streaming e contextvars.
 
 Responsabilidades:
-1. Gerar um request_id e devolvê-lo no header X-Request-ID.
+1. Gerar um request_id (devolvido no header X-Request-ID) e registrar IP e
+   navegador do cliente no contexto da requisição.
 2. Adicionar headers de segurança em toda resposta da API.
 3. Capturar exceções inesperadas: loga o stack trace no servidor e devolve
    ao cliente apenas uma mensagem genérica com o request_id.
@@ -13,11 +14,11 @@ Responsabilidades:
 import logging
 import uuid
 
-from starlette.datastructures import MutableHeaders
+from starlette.datastructures import Headers, MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from app.core.context import client_ip_var, request_id_var, user_agent_var
 from app.core.errors import error_response
-from app.core.logging import request_id_var
 
 logger = logging.getLogger("app.request")
 
@@ -46,7 +47,15 @@ class RequestContextMiddleware:
             return
 
         request_id = uuid.uuid4().hex
-        token = request_id_var.set(request_id)
+        # scope["client"] já reflete o IP real quando o Uvicorn roda atrás do
+        # Nginx com --proxy-headers (e só confia no proxy local).
+        client = scope.get("client")
+        user_agent = Headers(scope=scope).get("user-agent", "")[:255] or None
+        tokens = (
+            request_id_var.set(request_id),
+            client_ip_var.set(client[0] if client else None),
+            user_agent_var.set(user_agent),
+        )
         is_docs = scope["path"].startswith(_DOCS_PATHS)
         response_started = False
 
@@ -73,4 +82,7 @@ class RequestContextMiddleware:
             )
             await response(scope, receive, send_wrapper)
         finally:
-            request_id_var.reset(token)
+            for var, token in zip(
+                (request_id_var, client_ip_var, user_agent_var), tokens, strict=True
+            ):
+                var.reset(token)

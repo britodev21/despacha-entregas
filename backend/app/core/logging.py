@@ -1,14 +1,12 @@
 """Logging com request_id em cada linha.
 
-O request_id é guardado num ContextVar: cada requisição tem o seu, mesmo com
-várias requisições sendo atendidas ao mesmo tempo. Assim dá para filtrar no log
-tudo que aconteceu numa requisição específica.
+Cada linha de log carrega o request_id (ver app/core/context.py): dá para
+filtrar tudo que aconteceu numa requisição específica.
 """
 
 import logging
-from contextvars import ContextVar
 
-request_id_var: ContextVar[str] = ContextVar("request_id", default="-")
+from app.core.context import request_id_var
 
 
 class _RequestIdFilter(logging.Filter):

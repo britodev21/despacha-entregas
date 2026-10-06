@@ -7,7 +7,7 @@ assim os valores são validados uma única vez, na inicialização.
 from functools import lru_cache
 from typing import Annotated, Literal
 
-from pydantic import SecretStr, field_validator
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -22,6 +22,23 @@ class Settings(BaseSettings):
     migrations_database_url: SecretStr | None = None
 
     cors_origins: Annotated[list[str], NoDecode] = []
+
+    # --- Autenticação ---------------------------------------------------
+    # Segredo que assina os JWT. Quem tiver este valor consegue forjar tokens.
+    jwt_secret: SecretStr = Field(min_length=32)
+    access_token_minutes: int = Field(default=15, ge=1, le=60)
+    refresh_token_days: int = Field(default=7, ge=1, le=30)
+
+    # Bloqueio progressivo de conta após falhas seguidas de login.
+    login_max_failures: int = Field(default=5, ge=3)
+    login_lock_minutes: int = Field(default=15, ge=1)
+
+    # Limite por IP (por processo; o Nginx aplica outro limite global em produção).
+    login_rate_limit_per_minute: int = Field(default=10, ge=1)
+
+    # Senha dos usuários de demonstração criados por `python -m app.cli seed-dev`.
+    # Só em desenvolvimento; o comando se recusa a rodar em produção.
+    dev_seed_password: SecretStr | None = None
 
     @field_validator("cors_origins", mode="before")
     @classmethod
