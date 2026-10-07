@@ -43,7 +43,7 @@ O DESPACHA busca oferecer uma experiência simples para o usuário final, manten
 
 ## 🏗️ Status
 
-🚧 **Em desenvolvimento** — Fase 2 (Autenticação) concluída.
+🚧 **Em desenvolvimento** — Fase 3 (Clientes) concluída.
 
 O projeto está sendo desenvolvido inicialmente como um MVP, com evolução progressiva das funcionalidades.
 As decisões de arquitetura e o plano de fases estão em [docs/ARQUITETURA.md](docs/ARQUITETURA.md).

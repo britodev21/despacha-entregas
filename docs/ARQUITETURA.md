@@ -660,3 +660,16 @@ Cada fase termina com commit próprio.
 | Pós-login | Volta para a página pedida só se for interna e o perfil puder acessá-la | Evita redirecionamento para fora e telas de "acesso negado" |
 | Senhas no terminal | CLI nunca recebe senha por argumento (prompt ou `--password-stdin`) | Argumentos ficam no histórico do shell e na lista de processos |
 
+## 13. Decisões de implementação — Fase 3 (Clientes)
+
+| Tema | Decisão | Por quê |
+|---|---|---|
+| Campos obrigatórios | Só o nome do cliente; no endereço, rua, número, bairro, cidade e UF | Coletar o mínimo necessário (LGPD e agilidade) |
+| CPF/CNPJ | Opcional, validado pelos dígitos verificadores, fora das listagens | Dado sensível sem uso operacional na maioria dos negócios |
+| Endereço principal | Índice único parcial (`WHERE is_default`) no PostgreSQL | A regra "só um principal" vale mesmo com requisições simultâneas |
+| `company_id` no endereço | Repetido na tabela de endereços | Filtro por empresa sem JOIN; isolamento simples |
+| IDOR em endereço | Endereço é buscado dentro do cliente da URL, já validado | Id de endereço de outro cliente não é encontrado |
+| Busca | Nome (ILIKE) ou dígitos do telefone (a partir de 4) | É assim que o operador procura no balcão |
+| Excluir cliente | Arquivar (`is_active`), nunca apagar | Entregas antigas continuam referenciando o cliente |
+| CEP | ViaCEP direto do navegador, timeout de 4 s, falha silenciosa | Acelera o cadastro sem virar dependência; **liberar `viacep.com.br` no `connect-src` da CSP na fase 10** |
+
