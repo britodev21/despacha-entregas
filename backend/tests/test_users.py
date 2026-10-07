@@ -208,3 +208,15 @@ def test_search_treats_wildcards_literally(client, make_user, auth_headers):
     make_user(Role.OPERATOR)
     body = client.get(USERS, params={"search": "%"}, headers=headers).json()
     assert body["total"] == 0
+
+
+def test_validation_messages_are_in_portuguese(client, make_user, auth_headers):
+    response = client.post(
+        USERS,
+        json=user_payload(name="", email="invalido", password="curta"),
+        headers=auth_headers(make_user()),
+    )
+    messages = {d["field"]: d["message"] for d in response.json()["error"]["details"]}
+    assert messages["name"] == "Campo obrigatório."
+    assert messages["email"] == "E-mail inválido."
+    assert messages["password"] == "A senha deve ter pelo menos 10 caracteres."

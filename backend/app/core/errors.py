@@ -106,12 +106,39 @@ async def _validation_error_handler(_: Request, exc: RequestValidationError) -> 
     details = [
         {
             "field": ".".join(str(part) for part in err["loc"] if part != "body"),
-            "message": err["msg"],
+            "message": _translate(err),
             "type": err["type"],
         }
         for err in exc.errors()
     ]
-    return error_response(422, "VALIDATION_ERROR", "Dados inválidos.", details)
+    return error_response(422, "VALIDATION_ERROR", "Verifique os campos destacados.", details)
+
+
+def _translate(err: dict) -> str:
+    """Mensagens do Pydantic em português, claras para quem preenche o formulário."""
+    kind, ctx, msg = err["type"], err.get("ctx") or {}, err["msg"]
+    if kind == "value_error":
+        if msg.startswith("value is not a valid email address"):
+            return "E-mail inválido."
+        # Nossos validadores já falam português; o Pydantic só põe um prefixo.
+        return msg.removeprefix("Value error, ")
+    messages = {
+        "missing": "Campo obrigatório.",
+        "string_too_short": "Campo obrigatório."
+        if ctx.get("min_length") == 1
+        else f"Use pelo menos {ctx.get('min_length')} caracteres.",
+        "string_too_long": f"Use no máximo {ctx.get('max_length')} caracteres.",
+        "enum": "Opção inválida.",
+        "literal_error": "Opção inválida.",
+        "extra_forbidden": "Campo não permitido.",
+        "uuid_parsing": "Identificador inválido.",
+        "bool_parsing": "Valor inválido.",
+        "int_parsing": "Informe um número inteiro.",
+        "greater_than_equal": f"O valor mínimo é {ctx.get('ge')}.",
+        "less_than_equal": f"O valor máximo é {ctx.get('le')}.",
+        "json_invalid": "Formato de dados inválido.",
+    }
+    return messages.get(kind, "Valor inválido.")
 
 
 def register_exception_handlers(app: FastAPI) -> None:
