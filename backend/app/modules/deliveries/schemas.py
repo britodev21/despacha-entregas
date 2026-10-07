@@ -6,7 +6,7 @@ from typing import Annotated, Self
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.core.validators import normalize_name, normalize_phone
-from app.modules.deliveries.models import PaymentMethod
+from app.modules.deliveries.models import OccurrenceType, PaymentMethod
 from app.modules.deliveries.state_machine import DeliveryStatus
 
 # Dinheiro: decimal com 2 casas, nunca float (0.1 + 0.2 != 0.3 em float).
@@ -103,7 +103,78 @@ class CancelIn(BaseModel):
         return value.strip() if isinstance(value, str) else value
 
 
+Latitude = Annotated[Decimal, Field(ge=-90, le=90, decimal_places=6)]
+Longitude = Annotated[Decimal, Field(ge=-180, le=180, decimal_places=6)]
+
+
+class _Located(BaseModel):
+    """Localização do celular no momento da ação (opcional: GPS pode falhar)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    lat: Latitude | None = None
+    lng: Longitude | None = None
+
+    @model_validator(mode="after")
+    def _both_or_none(self) -> Self:
+        if (self.lat is None) != (self.lng is None):
+            raise ValueError("Informe latitude e longitude juntas.")
+        return self
+
+
+class CompleteIn(_Located):
+    received_by_name: str | None = Field(default=None, max_length=120)
+    notes: str | None = Field(default=None, max_length=500)
+
+    @field_validator("received_by_name", "notes", mode="before")
+    @classmethod
+    def _blank_to_none(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip() or None
+        return value
+
+
+class IssueIn(_Located):
+    type: OccurrenceType
+    description: str | None = Field(default=None, max_length=500)
+
+    @field_validator("description", mode="before")
+    @classmethod
+    def _blank_to_none(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip() or None
+        return value
+
+    @model_validator(mode="after")
+    def _describe_other(self) -> Self:
+        if self.type == OccurrenceType.OTHER and not self.description:
+            raise ValueError("Descreva a ocorrência.")
+        return self
+
+
 # ---------------------------------------------------------------- saída
+
+
+class OccurrenceOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    type: OccurrenceType
+    description: str | None
+    lat: Decimal | None
+    lng: Decimal | None
+    created_at: datetime
+    reporter: PersonOut | None
+
+
+class ProofOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    received_by_name: str | None
+    notes: str | None
+    lat: Decimal | None
+    lng: Decimal | None
+    created_at: datetime
 
 
 class PersonOut(BaseModel):
@@ -147,6 +218,8 @@ class DeliveryOut(BaseModel):
     started_at: datetime | None
     delivered_at: datetime | None
     canceled_at: datetime | None
+    occurrences: list[OccurrenceOut]
+    proof: ProofOut | None
 
 
 class DeliveryPage(BaseModel):

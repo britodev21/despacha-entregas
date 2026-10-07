@@ -7,7 +7,7 @@ from app.core.logging import configure_logging
 from app.core.middleware import RequestContextMiddleware
 from app.modules.auth.router import router as auth_router
 from app.modules.clients.router import router as clients_router
-from app.modules.deliveries.router import deliverers_router
+from app.modules.deliveries.router import deliverers_router, me_router
 from app.modules.deliveries.router import router as deliveries_router
 from app.modules.health.router import router as health_router
 from app.modules.users.router import router as users_router
@@ -50,6 +50,7 @@ def create_app() -> FastAPI:
     api.include_router(clients_router)
     api.include_router(deliveries_router)
     api.include_router(deliverers_router)
+    api.include_router(me_router)
     app.include_router(api)
 
     return app

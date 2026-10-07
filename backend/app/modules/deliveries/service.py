@@ -11,7 +11,7 @@ import uuid
 from datetime import UTC, date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import func, or_, select, update
+from sqlalchemy import case, func, or_, select, update
 from sqlalchemy.orm import Session
 
 from app.core.errors import AppError, ConflictError, NotFoundError
@@ -20,13 +20,25 @@ from app.modules.audit import service as audit
 from app.modules.audit.models import AuditAction
 from app.modules.clients.models import Client, ClientAddress
 from app.modules.companies.models import Company
-from app.modules.deliveries.models import Delivery, PaymentMethod
-from app.modules.deliveries.schemas import DelivererOption, DeliveryCreate, DeliveryUpdate
+from app.modules.deliveries.models import (
+    Delivery,
+    DeliveryOccurrence,
+    DeliveryProof,
+    PaymentMethod,
+)
+from app.modules.deliveries.schemas import (
+    CompleteIn,
+    DelivererOption,
+    DeliveryCreate,
+    DeliveryUpdate,
+    IssueIn,
+)
 from app.modules.deliveries.state_machine import (
     ADDRESS_EDITABLE,
     FINAL_STATUSES,
     DeliveryStatus,
     can_transition,
+    deliverer_can_transition,
 )
 from app.modules.users.models import User
 
@@ -241,9 +253,20 @@ def start(db: Session, actor: User, delivery_id: uuid.UUID) -> Delivery:
     return delivery
 
 
-def complete(db: Session, actor: User, delivery_id: uuid.UUID) -> Delivery:
+def complete(
+    db: Session, actor: User, delivery_id: uuid.UUID, proof: CompleteIn | None = None
+) -> Delivery:
     delivery = get_delivery(db, actor.company_id, delivery_id, for_update=True)
     _transition(db, actor, delivery, S.DELIVERED)
+    _add_proof(db, actor, delivery, proof)
+    db.commit()
+    return delivery
+
+
+def report_issue(db: Session, actor: User, delivery_id: uuid.UUID, data: IssueIn) -> Delivery:
+    delivery = get_delivery(db, actor.company_id, delivery_id, for_update=True)
+    _transition(db, actor, delivery, S.ISSUE)
+    _add_occurrence(db, actor, delivery, data)
     db.commit()
     return delivery
 
@@ -253,6 +276,93 @@ def cancel(db: Session, actor: User, delivery_id: uuid.UUID, reason: str) -> Del
     _transition(db, actor, delivery, S.CANCELED, reason=reason)
     db.commit()
     return delivery
+
+
+# ------------------------------------------------- área do entregador
+#
+# Toda consulta abaixo filtra deliverer_id = usuário logado. Não existe
+# caminho para um entregador ver ou mexer em entrega de outra pessoa.
+
+
+def list_own_deliveries(
+    db: Session, user: User, *, active: bool, limit: int = 50, offset: int = 0
+) -> tuple[list[Delivery], int]:
+    stmt = select(Delivery).where(
+        Delivery.company_id == user.company_id, Delivery.deliverer_id == user.id
+    )
+    if active:
+        stmt = stmt.where(Delivery.status.in_([S.IN_ROUTE, S.ISSUE, S.ASSIGNED]))
+        # Em rota primeiro (é o que ele está fazendo agora), depois ocorrências,
+        # depois as que ainda vai pegar; dentro de cada grupo, a mais antiga.
+        order = (
+            case(
+                (Delivery.status == S.IN_ROUTE, 0),
+                (Delivery.status == S.ISSUE, 1),
+                else_=2,
+            ),
+            Delivery.created_at,
+        )
+    else:
+        stmt = stmt.where(Delivery.status.in_([S.DELIVERED, S.CANCELED]))
+        order = (func.coalesce(Delivery.delivered_at, Delivery.canceled_at).desc(),)
+
+    total = db.scalar(select(func.count()).select_from(stmt.subquery()))
+    items = db.scalars(stmt.order_by(*order).limit(limit).offset(offset)).all()
+    return list(items), total
+
+
+def get_own_delivery(
+    db: Session, user: User, delivery_id: uuid.UUID, *, for_update: bool = False
+) -> Delivery:
+    stmt = select(Delivery).where(
+        Delivery.id == delivery_id,
+        Delivery.company_id == user.company_id,
+        Delivery.deliverer_id == user.id,
+    )
+    if for_update:
+        stmt = stmt.with_for_update(of=Delivery)
+    delivery = db.scalar(stmt)
+    if delivery is None:
+        raise NotFoundError("Entrega não encontrada.")
+    return delivery
+
+
+def deliverer_start(db: Session, user: User, delivery_id: uuid.UUID) -> Delivery:
+    delivery = get_own_delivery(db, user, delivery_id, for_update=True)
+    _deliverer_transition(db, user, delivery, S.IN_ROUTE)
+    db.commit()
+    return delivery
+
+
+def deliverer_complete(
+    db: Session, user: User, delivery_id: uuid.UUID, proof: CompleteIn
+) -> Delivery:
+    delivery = get_own_delivery(db, user, delivery_id, for_update=True)
+    _deliverer_transition(db, user, delivery, S.DELIVERED)
+    _add_proof(db, user, delivery, proof)
+    db.commit()
+    return delivery
+
+
+def deliverer_report_issue(
+    db: Session, user: User, delivery_id: uuid.UUID, data: IssueIn
+) -> Delivery:
+    delivery = get_own_delivery(db, user, delivery_id, for_update=True)
+    _deliverer_transition(db, user, delivery, S.ISSUE)
+    _add_occurrence(db, user, delivery, data)
+    db.commit()
+    return delivery
+
+
+def _deliverer_transition(
+    db: Session, user: User, delivery: Delivery, target: DeliveryStatus
+) -> None:
+    # Regra mais restrita que a do operador: só os passos do próprio trabalho.
+    if not deliverer_can_transition(delivery.status, target):
+        raise ConflictError(
+            "Esta ação não está disponível para a entrega agora.", code="INVALID_TRANSITION"
+        )
+    _apply(db, user, delivery, target)
 
 
 # --------------------------------------------------------------- interno
@@ -324,6 +434,36 @@ def _apply(
         if reason:
             details["reason"] = reason
         _log(db, actor, AuditAction.DELIVERY_STATUS_CHANGED, delivery, details)
+
+
+def _add_proof(db: Session, actor: User, delivery: Delivery, data: CompleteIn | None) -> None:
+    if data is None:
+        return
+    db.add(
+        DeliveryProof(
+            company_id=delivery.company_id,
+            delivery_id=delivery.id,
+            created_by=actor.id,
+            **data.model_dump(),
+        )
+    )
+    db.flush()
+    db.refresh(delivery, ["proof"])
+
+
+def _add_occurrence(db: Session, actor: User, delivery: Delivery, data: IssueIn) -> None:
+    db.add(
+        DeliveryOccurrence(
+            company_id=delivery.company_id,
+            delivery_id=delivery.id,
+            reported_by=actor.id,
+            **data.model_dump(),
+        )
+    )
+    db.flush()
+    _log(db, actor, AuditAction.DELIVERY_ISSUE_REPORTED, delivery, {"type": data.type})
+    # Recarrega a relação: a resposta já sai com a ocorrência nova.
+    db.refresh(delivery, ["occurrences"])
 
 
 def _client_and_address(

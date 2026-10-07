@@ -34,6 +34,8 @@ select = ["E", "F", "I", "B", "UP", "S", "SIM"]
 [tool.ruff.lint.per-file-ignores]
 # assert é o idioma do pytest; senhas fictícias em testes são esperadas
 "tests/**" = ["S101", "S105", "S106"]
+# Migrations são geradas pelo Alembic; strings de CHECK podem ser longas.
+"alembic/versions/**" = ["E501"]
 
 [tool.ruff.lint.isort]
 # A pasta local alembic/ (migrations) confunde o isort: alembic é lib externa.

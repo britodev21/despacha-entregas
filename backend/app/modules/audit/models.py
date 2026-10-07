@@ -31,6 +31,7 @@ class AuditAction(StrEnum):
     DELIVERY_UPDATED = "delivery.updated"
     DELIVERY_STATUS_CHANGED = "delivery.status_changed"
     DELIVERY_DELIVERER_CHANGED = "delivery.deliverer_changed"
+    DELIVERY_ISSUE_REPORTED = "delivery.issue_reported"
 
 
 class AuditLog(Base):

@@ -13,6 +13,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -27,6 +28,16 @@ class PaymentMethod(StrEnum):
     CREDIT_CARD = "CREDIT_CARD"
     DEBIT_CARD = "DEBIT_CARD"
     PREPAID = "PREPAID"  # já pago (ex.: pelo app/site)
+    OTHER = "OTHER"
+
+
+class OccurrenceType(StrEnum):
+    CUSTOMER_ABSENT = "CUSTOMER_ABSENT"
+    WRONG_ADDRESS = "WRONG_ADDRESS"
+    REFUSED = "REFUSED"
+    ACCESS_PROBLEM = "ACCESS_PROBLEM"
+    DAMAGED_PRODUCT = "DAMAGED_PRODUCT"
+    DELIVERY_PROBLEM = "DELIVERY_PROBLEM"
     OTHER = "OTHER"
 
 
@@ -111,3 +122,58 @@ class Delivery(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     canceled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     deliverer: Mapped[User | None] = relationship(foreign_keys=[deliverer_id], lazy="joined")
+    # selectin: uma query extra para todas as entregas da lista (sem N+1).
+    occurrences: Mapped[list[DeliveryOccurrence]] = relationship(
+        back_populates="delivery", lazy="selectin", order_by="DeliveryOccurrence.created_at"
+    )
+    proof: Mapped[DeliveryProof | None] = relationship(
+        back_populates="delivery", lazy="selectin", uselist=False
+    )
+
+
+class DeliveryOccurrence(UUIDPrimaryKeyMixin, Base):
+    """Algo que impediu ou atrapalhou a entrega (cliente ausente, endereço errado...)."""
+
+    __tablename__ = "delivery_occurrences"
+    __table_args__ = (_check_in("type", OccurrenceType),)
+
+    company_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("companies.id", ondelete="RESTRICT"), index=True
+    )
+    delivery_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("deliveries.id", ondelete="CASCADE"), index=True
+    )
+    reported_by: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL")
+    )
+    type: Mapped[OccurrenceType] = mapped_column(_enum(OccurrenceType))
+    description: Mapped[str | None] = mapped_column(String(500))
+    lat: Mapped[Decimal | None] = mapped_column(Numeric(9, 6))
+    lng: Mapped[Decimal | None] = mapped_column(Numeric(9, 6))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    delivery: Mapped[Delivery] = relationship(back_populates="occurrences")
+    reporter: Mapped[User | None] = relationship(lazy="joined")
+
+
+class DeliveryProof(UUIDPrimaryKeyMixin, Base):
+    """Comprovante de entrega (1 por entrega). Foto e assinatura: fase 7."""
+
+    __tablename__ = "delivery_proofs"
+
+    company_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("companies.id", ondelete="RESTRICT"), index=True
+    )
+    delivery_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("deliveries.id", ondelete="CASCADE"), unique=True
+    )
+    received_by_name: Mapped[str | None] = mapped_column(String(120))
+    notes: Mapped[str | None] = mapped_column(String(500))
+    lat: Mapped[Decimal | None] = mapped_column(Numeric(9, 6))
+    lng: Mapped[Decimal | None] = mapped_column(Numeric(9, 6))
+    created_by: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    delivery: Mapped[Delivery] = relationship(back_populates="proof")
