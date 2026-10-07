@@ -3,6 +3,8 @@ import { createBrowserRouter } from "react-router";
 import { HomeRedirect, RequireAuth, RequirePermission } from "@/auth/guards";
 import { PERMISSIONS } from "@/auth/permissions";
 import { LoginPage } from "@/features/auth/LoginPage";
+import { ClientDetailPage } from "@/features/clients/ClientDetailPage";
+import { ClientsPage } from "@/features/clients/ClientsPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { DelivererHomePage } from "@/features/deliverer/DelivererHomePage";
 import { NotFoundPage } from "@/features/system/NotFoundPage";
@@ -31,6 +33,14 @@ export const router = createBrowserRouter([
             ),
             children: [
               { path: "painel", element: <DashboardPage /> },
+              {
+                path: "clientes",
+                element: <RequirePermission permission={PERMISSIONS.CLIENTS_MANAGE} />,
+                children: [
+                  { index: true, element: <ClientsPage /> },
+                  { path: ":clientId", element: <ClientDetailPage /> },
+                ],
+              },
               {
                 path: "usuarios",
                 element: (

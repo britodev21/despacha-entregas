@@ -30,6 +30,7 @@ export function homePathFor(user) {
 const ROUTE_PERMISSIONS = [
   ["/entregador", PERMISSIONS.DELIVERIES_OWN],
   ["/usuarios", PERMISSIONS.USERS_MANAGE],
+  ["/clientes", PERMISSIONS.CLIENTS_MANAGE],
   ["/painel", PERMISSIONS.DASHBOARD_READ],
 ];
 

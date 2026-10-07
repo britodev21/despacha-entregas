@@ -1,4 +1,4 @@
-import { LayoutDashboard, Menu, UserCog, X } from "lucide-react";
+import { Contact, LayoutDashboard, Menu, UserCog, X } from "lucide-react";
 import { useRef } from "react";
 import { NavLink, Outlet } from "react-router";
 
@@ -15,6 +15,7 @@ import { UserMenu } from "./UserMenu";
 // Só aparece no menu o que o perfil pode acessar (e o que já existe).
 const NAV_ITEMS = [
   { to: "/painel", label: "Painel", Icon: LayoutDashboard, permission: PERMISSIONS.DASHBOARD_READ },
+  { to: "/clientes", label: "Clientes", Icon: Contact, permission: PERMISSIONS.CLIENTS_MANAGE },
   { to: "/usuarios", label: "Usuários", Icon: UserCog, permission: PERMISSIONS.USERS_MANAGE },
 ];
 
