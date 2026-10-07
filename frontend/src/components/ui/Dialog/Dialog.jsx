@@ -31,7 +31,13 @@ export function Dialog({
 
   useLayoutEffect(() => {
     const dialog = ref.current;
-    if (open && !dialog.open) dialog.showModal();
+    if (open && !dialog.open) {
+      dialog.showModal();
+      // O <dialog> foca o primeiro elemento focável (o botão Fechar). Em
+      // formulários, o certo é o primeiro campo: marcamos com data-autofocus
+      // (o autoFocus do React não vira atributo no HTML).
+      dialog.querySelector("[data-autofocus]")?.focus();
+    }
     if (!open && dialog.open) dialog.close();
   }, [open]);
 

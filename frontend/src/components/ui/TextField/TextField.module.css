@@ -125,3 +125,16 @@
   width: 1.125rem;
   height: 1.125rem;
 }
+
+/* TextArea: altura livre */
+.multiline {
+  height: auto;
+  align-items: stretch;
+}
+
+.textarea {
+  min-height: 5rem;
+  padding: var(--space-3);
+  line-height: var(--leading-normal);
+  resize: vertical;
+}

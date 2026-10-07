@@ -70,6 +70,7 @@ export function ChangePasswordDialog({ onClose }) {
       <form id="change-password-form" className={styles.form} onSubmit={handleSubmit} noValidate>
         {formError && <Alert tone="danger">{formError}</Alert>}
         <PasswordField
+          data-autofocus
           label="Senha atual"
           autoComplete="current-password"
           value={values.current_password}

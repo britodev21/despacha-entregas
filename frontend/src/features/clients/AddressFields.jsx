@@ -59,6 +59,7 @@ export function AddressFields({ values, errors = {}, onChange, showDefaultToggle
   return (
     <div className={styles.addressGrid}>
       <TextField
+        data-autofocus
         label="CEP"
         inputMode="numeric"
         autoComplete="postal-code"

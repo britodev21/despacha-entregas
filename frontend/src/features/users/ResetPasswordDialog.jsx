@@ -61,6 +61,7 @@ export function ResetPasswordDialog({ open, user, onClose, onDone }) {
         {formError && <Alert tone="danger">{formError}</Alert>}
         <div className={styles.passwordRow}>
           <TextField
+            data-autofocus
             label="Nova senha"
             required
             autoComplete="new-password"

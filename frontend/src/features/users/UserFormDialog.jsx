@@ -94,6 +94,7 @@ export function UserFormDialog({ open, user, onClose, onSaved }) {
         {formError && <Alert tone="danger">{formError}</Alert>}
 
         <TextField
+          data-autofocus
           label="Nome"
           required
           value={values.name}

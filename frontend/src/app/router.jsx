@@ -6,6 +6,7 @@ import { LoginPage } from "@/features/auth/LoginPage";
 import { ClientDetailPage } from "@/features/clients/ClientDetailPage";
 import { ClientsPage } from "@/features/clients/ClientsPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
+import { OperationsPage } from "@/features/deliveries/OperationsPage";
 import { DelivererHomePage } from "@/features/deliverer/DelivererHomePage";
 import { NotFoundPage } from "@/features/system/NotFoundPage";
 import { RouteErrorPage } from "@/features/system/RouteErrorPage";
@@ -33,6 +34,14 @@ export const router = createBrowserRouter([
             ),
             children: [
               { path: "painel", element: <DashboardPage /> },
+              {
+                path: "entregas",
+                element: (
+                  <RequirePermission permission={PERMISSIONS.DELIVERIES_MANAGE}>
+                    <OperationsPage />
+                  </RequirePermission>
+                ),
+              },
               {
                 path: "clientes",
                 element: <RequirePermission permission={PERMISSIONS.CLIENTS_MANAGE} />,

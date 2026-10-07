@@ -92,7 +92,7 @@ export function ClientFormDialog({ client, onClose, onSaved }) {
       <form id="client-form" className={styles.form} onSubmit={handleSubmit} noValidate>
         {formError && <Alert tone="danger">{formError}</Alert>}
 
-        <TextField label="Nome" required autoComplete="off" {...field("name")} />
+        <TextField data-autofocus label="Nome" required autoComplete="off" {...field("name")} />
         <TextField
           label="Telefone"
           type="tel"
