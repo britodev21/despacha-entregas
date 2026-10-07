@@ -23,6 +23,10 @@ class AuditAction(StrEnum):
     USER_DEACTIVATED = "user.deactivated"
     USER_ACTIVATED = "user.activated"
     USER_PASSWORD_RESET = "user.password_reset"  # noqa: S105 (nome de ação, não senha)
+    CLIENT_CREATED = "client.created"
+    CLIENT_UPDATED = "client.updated"
+    CLIENT_ARCHIVED = "client.archived"
+    CLIENT_ACTIVATED = "client.activated"
 
 
 class AuditLog(Base):
