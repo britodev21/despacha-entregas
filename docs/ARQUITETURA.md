@@ -673,3 +673,19 @@ Cada fase termina com commit próprio.
 | Excluir cliente | Arquivar (`is_active`), nunca apagar | Entregas antigas continuam referenciando o cliente |
 | CEP | ViaCEP direto do navegador, timeout de 4 s, falha silenciosa | Acelera o cadastro sem virar dependência; **liberar `viacep.com.br` no `connect-src` da CSP na fase 10** |
 
+## 14. Decisões de implementação — Fase 4 (Entregas)
+
+| Tema | Decisão | Por quê |
+|---|---|---|
+| Mudança de status | Ações explícitas (`/assign`, `/start`, `/complete`, `/cancel`, `/unassign`) sobre uma máquina de estados única | Impossível pular etapas; cada regra vive num lugar só |
+| Concorrência | `SELECT … FOR UPDATE` na entrega em toda transição | Cancelar e finalizar ao mesmo tempo: o segundo recebe 409 |
+| Número da entrega | `UPDATE companies … RETURNING` | `MAX()+1` duplicaria números sob concorrência |
+| Dinheiro | `Numeric(10,2)` no banco, `Decimal` no Python, texto no JSON, formatação só na tela | Float erra centavos |
+| Edição | Bloqueada em entregas finalizadas; endereço trava quando sai para entrega | O entregador não pode ser surpreendido no caminho |
+| Quadro de operação | Colunas por etapa, mais antigas no topo, polling de 15 s só com a aba visível | Responde "o que precisa de atenção agora" sem WebSocket |
+| Atribuição | Lista de entregadores mostra a carga atual ("2 em andamento") | Distribuir melhor sem virar roteirizador (isso é Log-Rotas) |
+| Nova entrega | Um formulário só: cliente (busca ou cadastro na hora) → endereço → pagamento → previsão rápida | Velocidade no balcão |
+| Formulários aninhados | Escolha de cliente fora do `<form>` da entrega | Form dentro de form faria um envio disparar o outro |
+| Foco em diálogos | `data-autofocus` no primeiro campo | O `<dialog>` focaria o botão Fechar; o `autoFocus` do React não vira atributo |
+| Models × migrations | CHECKs de enum explícitos + teste com `alembic check` | Evita constraint duplicada e migration esquecida |
+
