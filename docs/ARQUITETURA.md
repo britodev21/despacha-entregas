@@ -638,3 +638,25 @@ Cada fase termina com commit próprio.
 | Filtro de `company_id` esquecido | Média | Helper único + testes de isolamento + RLS futuro |
 | Escopo crescer para ERP/roteirização | Média | Seção 1 deste documento; pergunta "isso pertence ao DESPACHA?" |
 | Backup que não restaura | Média | Teste de restauração periódico e documentado |
+
+---
+
+## 12. Decisões de implementação — Fase 2 (Autenticação)
+
+| Tema | Decisão | Por quê |
+|---|---|---|
+| Hash de senha | Argon2id com parâmetros mínimos da OWASP (19 MiB, t=2, p=1) | O padrão da biblioteca (64 MiB) com dezenas de logins simultâneos esgotaria a memória de um VPS pequeno |
+| Tempo constante | Usuário inexistente também passa por uma verificação de hash | Sem isso, a resposta mais rápida revelaria quais e-mails existem |
+| Mensagem de falha | Idêntica para usuário inexistente, senha errada, conta bloqueada ou inativa | Evita enumeração de contas |
+| Bloqueio | Progressivo por conta (15 min, 30, 60… até 24 h), linha travada com `SELECT … FOR UPDATE` | Tentativas paralelas não "furam" o contador |
+| Rate limit | Em memória por processo + Nginx global (fase 10) | Sem Redis no MVP; as duas camadas se complementam |
+| Refresh no navegador | Uma renovação por vez: Promise compartilhada na aba + Web Locks API entre abas | Duas renovações simultâneas com o mesmo cookie pareceriam roubo de token |
+| Logout entre abas | `BroadcastChannel` encerra a sessão nas outras abas | Access token em memória continuaria válido até expirar |
+| Troca de senha | Tokens com `iat` anterior a `password_changed_at` são recusados; outras sessões revogadas | Senha comprometida deixa de valer em todos os dispositivos |
+| Usuário a cada requisição | Recarregado do banco (papel, status, empresa) | Desativar alguém vale na hora, não em 15 minutos |
+| CSRF | Cookie `SameSite=Strict` + verificação do header `Origin` nas rotas com cookie | Defesa em camadas |
+| Mensagens de validação | Traduzidas no handler de erro (Pydantic responde em inglês) | Mensagem clara para quem preenche o formulário |
+| Diálogos e menus | `<dialog>` nativo e Popover API | Foco preso, Esc, fundo inerte e devolução de foco sem bibliotecas |
+| Pós-login | Volta para a página pedida só se for interna e o perfil puder acessá-la | Evita redirecionamento para fora e telas de "acesso negado" |
+| Senhas no terminal | CLI nunca recebe senha por argumento (prompt ou `--password-stdin`) | Argumentos ficam no histórico do shell e na lista de processos |
+

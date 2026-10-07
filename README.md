@@ -43,7 +43,7 @@ O DESPACHA busca oferecer uma experiência simples para o usuário final, manten
 
 ## 🏗️ Status
 
-🚧 **Em desenvolvimento** — Fase 1 (Fundação) concluída.
+🚧 **Em desenvolvimento** — Fase 2 (Autenticação) concluída.
 
 O projeto está sendo desenvolvido inicialmente como um MVP, com evolução progressiva das funcionalidades.
 As decisões de arquitetura e o plano de fases estão em [docs/ARQUITETURA.md](docs/ARQUITETURA.md).
@@ -76,10 +76,18 @@ uv run uvicorn app.main:app --reload
 
 API em `http://127.0.0.1:8000` — documentação interativa em `/api/docs` (desligada em produção).
 
-Criar uma empresa (não há cadastro público):
+Criar uma empresa e o primeiro administrador (não há cadastro público):
 
 ```bash
 uv run python -m app.cli create-company --name "Minha Empresa"
+uv run python -m app.cli create-user --company-id <ID_DA_EMPRESA>     --name "Seu Nome" --email voce@exemplo.com --role ADMIN   # a senha é pedida no terminal
+```
+
+Ou, só em desenvolvimento, dados de demonstração (admin, operador e entregador,
+com a senha definida em `DEV_SEED_PASSWORD` no `.env`):
+
+```bash
+uv run python -m app.cli seed-dev
 ```
 
 ### 3. Frontend
