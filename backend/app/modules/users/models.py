@@ -16,6 +16,7 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __table_args__ = (
         # Login por e-mail OU telefone: pelo menos um precisa existir.
         CheckConstraint("email IS NOT NULL OR phone IS NOT NULL", name="email_or_phone"),
+        CheckConstraint("role IN ('ADMIN', 'OPERATOR', 'DELIVERER')", name="role"),
     )
 
     company_id: Mapped[uuid.UUID] = mapped_column(
@@ -27,11 +28,9 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     email: Mapped[str | None] = mapped_column(String(254), unique=True)
     phone: Mapped[str | None] = mapped_column(String(15), unique=True)
     password_hash: Mapped[str] = mapped_column(String(255))
-    # native_enum=False: VARCHAR + CHECK em vez de ENUM do PostgreSQL,
+    # native_enum=False: VARCHAR + CHECK (acima) em vez de ENUM do PostgreSQL,
     # que é difícil de alterar em migrations futuras.
-    role: Mapped[Role] = mapped_column(
-        Enum(Role, name="role", native_enum=False, length=16, create_constraint=True)
-    )
+    role: Mapped[Role] = mapped_column(Enum(Role, native_enum=False, length=16))
     is_active: Mapped[bool] = mapped_column(server_default=true())
 
     # Proteção contra força bruta (ver auth/service.py)

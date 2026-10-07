@@ -93,3 +93,13 @@ def test_app_role_cannot_change_schema(db: Session):
         db.execute(text("CREATE TABLE invasor (id int)"))
     # Checa o tipo do erro, não o texto: a mensagem muda com o idioma do PostgreSQL.
     assert isinstance(exc_info.value.orig, InsufficientPrivilege)
+
+
+def test_models_and_migrations_are_in_sync():
+    """Falha se alguém mudar um model e esquecer de gerar a migration."""
+    from alembic import command
+    from alembic.config import Config
+
+    from tests.conftest import BACKEND_DIR
+
+    command.check(Config(toml_file=str(BACKEND_DIR / "pyproject.toml")))

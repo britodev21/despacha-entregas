@@ -9,6 +9,16 @@ from app.modules.audit.models import AuditLog
 from app.modules.auth.models import RefreshToken
 from app.modules.clients.models import Client, ClientAddress
 from app.modules.companies.models import Company
+from app.modules.deliveries.models import Delivery
 from app.modules.users.models import User
 
-__all__ = ["AuditLog", "Base", "Client", "ClientAddress", "Company", "RefreshToken", "User"]
+__all__ = [
+    "AuditLog",
+    "Base",
+    "Client",
+    "ClientAddress",
+    "Company",
+    "Delivery",
+    "RefreshToken",
+    "User",
+]

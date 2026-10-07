@@ -27,6 +27,10 @@ class AuditAction(StrEnum):
     CLIENT_UPDATED = "client.updated"
     CLIENT_ARCHIVED = "client.archived"
     CLIENT_ACTIVATED = "client.activated"
+    DELIVERY_CREATED = "delivery.created"
+    DELIVERY_UPDATED = "delivery.updated"
+    DELIVERY_STATUS_CHANGED = "delivery.status_changed"
+    DELIVERY_DELIVERER_CHANGED = "delivery.deliverer_changed"
 
 
 class AuditLog(Base):
