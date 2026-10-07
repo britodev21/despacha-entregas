@@ -1,17 +1,45 @@
 import axios from "axios";
 
+import { endSession, getAccessToken, refreshSession } from "./session";
+
 /**
  * Cliente HTTP único da aplicação.
  *
  * baseURL relativa ("/api/v1"): em dev o Vite encaminha para o FastAPI (proxy);
  * em produção o Nginx faz o mesmo. Frontend e API ficam na MESMA origem,
- * então não há CORS e o cookie do refresh token (fase 2) funciona com
- * SameSite=Strict.
+ * então não há CORS e o cookie do refresh token funciona com SameSite=Strict.
  */
 export const api = axios.create({
   baseURL: "/api/v1",
   timeout: 15000,
 });
+
+// Toda requisição leva o access token, se houver.
+api.interceptors.request.use((config) => {
+  const token = getAccessToken();
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+// 401 = access token expirou (vive 15 min). Renova UMA vez e repete a
+// requisição original; o usuário nem percebe. Se a renovação falhar,
+// a sessão acabou de verdade.
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const original = error.config;
+    if (error.response?.status === 401 && original && !original._retried) {
+      original._retried = true;
+      try {
+        await refreshSession();
+        return api(original);
+      } catch {
+        endSession();
+      }
+    }
+    return Promise.reject(error);
+  },
+);
 
 const FALLBACK_MESSAGES = {
   network: "Sem conexão com o servidor. Verifique sua internet e tente novamente.",

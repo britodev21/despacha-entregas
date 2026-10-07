@@ -1,0 +1,127 @@
+.dialog {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  max-width: none;
+  max-height: none;
+}
+
+.dialog::backdrop {
+  background-color: var(--color-overlay);
+}
+
+.surface {
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ---------- Modal (centralizado) ---------- */
+
+.modal {
+  width: min(100% - 2rem, var(--dialog-width));
+  max-height: calc(100dvh - 2rem);
+  margin: auto;
+}
+
+.modal .surface {
+  border-radius: var(--radius-xl);
+}
+
+.modal[open] {
+  animation: pop-in var(--duration-base) var(--ease-standard);
+}
+
+.sm {
+  --dialog-width: 26rem;
+}
+
+.md {
+  --dialog-width: 32rem;
+}
+
+.lg {
+  --dialog-width: 40rem;
+}
+
+/* ---------- Drawer (lateral direita) ---------- */
+
+.drawer {
+  width: min(100%, 28rem);
+  height: 100dvh;
+  margin: 0 0 0 auto;
+}
+
+.drawer .surface {
+  height: 100%;
+  border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+}
+
+.drawer[open] {
+  animation: slide-in var(--duration-slow) var(--ease-standard);
+}
+
+/* Celular: a gaveta ocupa a tela toda. */
+@media (max-width: 30rem) {
+  .drawer .surface {
+    border-radius: 0;
+  }
+}
+
+/* ---------- Conteúdo ---------- */
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-5) var(--space-3);
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+}
+
+.description {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-2) var(--space-5) var(--space-5);
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+}

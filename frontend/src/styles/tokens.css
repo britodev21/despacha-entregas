@@ -64,14 +64,14 @@
   --font-sans: "Manrope Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
 
-  --text-xs: 0.75rem;   /* 12px */
-  --text-sm: 0.875rem;  /* 14px */
-  --text-md: 1rem;      /* 16px — mínimo em inputs (evita zoom no iOS) */
-  --text-lg: 1.125rem;  /* 18px */
-  --text-xl: 1.25rem;   /* 20px */
-  --text-2xl: 1.5rem;   /* 24px */
+  --text-xs: 0.75rem; /* 12px */
+  --text-sm: 0.875rem; /* 14px */
+  --text-md: 1rem; /* 16px — mínimo em inputs (evita zoom no iOS) */
+  --text-lg: 1.125rem; /* 18px */
+  --text-xl: 1.25rem; /* 20px */
+  --text-2xl: 1.5rem; /* 24px */
   --text-3xl: 1.875rem; /* 30px */
-  --text-4xl: 2.25rem;  /* 36px */
+  --text-4xl: 2.25rem; /* 36px */
 
   --weight-regular: 400;
   --weight-medium: 500;
@@ -105,9 +105,9 @@
   --radius-full: 999px;
 
   /* Alturas de controles. lg/xl = alvos de toque confortáveis (entregador). */
-  --control-sm: 2rem;   /* 32px */
+  --control-sm: 2rem; /* 32px */
   --control-md: 2.5rem; /* 40px */
-  --control-lg: 3rem;   /* 48px */
+  --control-lg: 3rem; /* 48px */
   --control-xl: 3.5rem; /* 56px */
 
   /* ---------- Movimento ---------- */
@@ -186,9 +186,16 @@
   --status-issue-bg: #fee2e2;
   --status-issue-fg: #b91c1c;
 
+  /* Painel de marca (login): azul profundo da identidade */
+  --color-panel-bg: var(--sky-900);
+  --color-panel-fg: #ffffff;
+  --color-panel-muted: var(--sky-200);
+  --color-panel-chip: rgb(255 255 255 / 0.1);
+  --color-panel-accent: var(--sky-300);
+
   --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.06);
   --shadow-md: 0 2px 4px rgb(15 23 42 / 0.04), 0 6px 16px rgb(15 23 42 / 0.06);
-  --shadow-lg: 0 8px 24px rgb(15 23 42 / 0.10), 0 2px 6px rgb(15 23 42 / 0.05);
+  --shadow-lg: 0 8px 24px rgb(15 23 42 / 0.1), 0 2px 6px rgb(15 23 42 / 0.05);
   --color-overlay: rgb(15 23 42 / 0.45);
 }
 
@@ -250,6 +257,12 @@
   --status-canceled-fg: #a8a29e;
   --status-issue-bg: #3b1717;
   --status-issue-fg: #fca5a5;
+
+  --color-panel-bg: #0f2231;
+  --color-panel-fg: var(--graphite-100);
+  --color-panel-muted: var(--graphite-300);
+  --color-panel-chip: rgb(125 211 252 / 0.1);
+  --color-panel-accent: var(--sky-300);
 
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
   --shadow-md: 0 4px 12px rgb(0 0 0 / 0.45);

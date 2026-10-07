@@ -1,0 +1,34 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  height: 3.5rem;
+  /* Respeita o "notch" de celulares com tela até a borda. */
+  padding: 0 max(var(--space-4), env(safe-area-inset-right)) 0
+    max(var(--space-4), env(safe-area-inset-left));
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.content {
+  width: 100%;
+  max-width: 36rem;
+  margin-inline: auto;
+  padding: var(--space-5) var(--space-4) max(var(--space-8), env(safe-area-inset-bottom));
+}

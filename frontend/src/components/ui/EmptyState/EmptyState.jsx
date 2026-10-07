@@ -6,7 +6,14 @@ import styles from "./EmptyState.module.css";
  * Estado vazio / mensagem: explica o que aconteceu e o que fazer agora.
  * Usado em listas sem resultados, erros de página e 404.
  */
-export function EmptyState({ icon: Icon, title, description, actions, tone = "neutral", className }) {
+export function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  actions,
+  tone = "neutral",
+  className,
+}) {
   return (
     <div className={cx(styles.empty, className)}>
       {Icon && (

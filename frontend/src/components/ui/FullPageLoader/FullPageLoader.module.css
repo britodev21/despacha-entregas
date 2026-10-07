@@ -1,0 +1,19 @@
+.loader {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: var(--space-5);
+  min-height: 100dvh;
+  /* Só aparece se demorar: evita "piscar" um loader em respostas rápidas. */
+  animation: appear var(--duration-slow) var(--ease-standard) 300ms both;
+}
+
+.spinner {
+  color: var(--color-brand);
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}

@@ -1,0 +1,51 @@
+.alert {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-size: var(--text-sm);
+}
+
+.icon {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-width: 0;
+}
+
+.title {
+  font-weight: var(--weight-semibold);
+}
+
+.danger {
+  background-color: var(--color-danger-soft);
+  color: var(--color-on-danger-soft);
+  border-color: color-mix(in srgb, var(--color-danger) 25%, transparent);
+}
+
+.warning {
+  background-color: var(--color-warning-soft);
+  color: var(--color-on-warning-soft);
+}
+
+.success {
+  background-color: var(--color-success-soft);
+  color: var(--color-on-success-soft);
+}
+
+.info {
+  background-color: var(--color-brand-soft);
+  color: var(--color-on-brand-soft);
+}
+
+/* Alert recebe foco programático após erro de envio; o anel não é necessário. */
+.alert:focus {
+  outline: none;
+}

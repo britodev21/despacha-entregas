@@ -1,0 +1,128 @@
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
+  anchor-name: --user-menu;
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+
+.trigger:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.compact {
+  padding-right: var(--space-1);
+}
+
+.avatar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-brand-soft);
+  color: var(--color-on-brand-soft);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+}
+
+.identity {
+  display: none;
+  flex-direction: column;
+  line-height: var(--leading-tight);
+}
+
+@media (min-width: 48rem) {
+  .identity {
+    display: flex;
+  }
+}
+
+.name {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.role,
+.meta {
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+}
+
+.chevron {
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-text-subtle);
+}
+
+/* ---------- Menu (popover) ---------- */
+
+.menu {
+  /* Ancorado ao botão (CSS Anchor Positioning). */
+  position-anchor: --user-menu;
+  position-area: bottom span-left;
+  margin: var(--space-2) 0 0;
+  min-width: 15rem;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Navegadores sem anchor positioning: canto superior direito. */
+@supports not (position-area: bottom) {
+  .menu {
+    inset: 3.75rem var(--space-4) auto auto;
+    margin: 0;
+  }
+}
+
+.menuHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  padding: var(--space-2) var(--space-3) var(--space-3);
+  margin-bottom: var(--space-1);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  text-align: left;
+}
+
+.item:hover:not(:disabled) {
+  background-color: var(--color-surface-hover);
+}
+
+.item:disabled {
+  cursor: progress;
+  color: var(--color-text-subtle);
+}
+
+.item > svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--color-text-subtle);
+}

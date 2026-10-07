@@ -1,0 +1,215 @@
+.shell {
+  display: grid;
+  min-height: 100dvh;
+}
+
+@media (min-width: 64rem) {
+  .shell {
+    grid-template-columns: 15rem minmax(0, 1fr);
+  }
+}
+
+/* Link invisível até receber foco pelo teclado (primeiro Tab da página). */
+.skipLink {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: var(--z-toast);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-raised);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-200%);
+}
+
+.skipLink:focus {
+  transform: none;
+}
+
+/* ---------- Sidebar (desktop) ---------- */
+
+.sidebar {
+  display: none;
+}
+
+@media (min-width: 64rem) {
+  .sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    height: 100dvh;
+    padding: var(--space-5) var(--space-3);
+    border-right: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+  }
+}
+
+.sidebarLogo {
+  padding: 0 var(--space-2);
+}
+
+.navList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 2.75rem;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.navLink > svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.navLink:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+/* Item ativo: azul claro da identidade, com barra lateral (não só cor). */
+.active,
+.active:hover {
+  position: relative;
+  background-color: var(--color-brand-soft);
+  color: var(--color-on-brand-soft);
+}
+
+.active::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--space-3) * -1);
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 3px;
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  background-color: var(--color-brand);
+}
+
+.company {
+  margin-top: auto;
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ---------- Gaveta (mobile) ---------- */
+
+.drawer {
+  /* <dialog> como painel lateral */
+  margin: 0;
+  width: min(18rem, 85vw);
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  padding: 0;
+  border: 0;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-lg);
+}
+
+.drawer::backdrop {
+  background-color: var(--color-overlay);
+}
+
+.drawer[open] {
+  animation: slide-in var(--duration-base) var(--ease-standard);
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+.drawerInner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  height: 100%;
+  padding: var(--space-4) var(--space-3);
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: var(--space-2);
+}
+
+/* ---------- Área principal ---------- */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 4rem;
+  padding: 0 var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background-color: color-mix(in srgb, var(--color-bg) 85%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.topbarActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+@media (min-width: 64rem) {
+  .menuButton,
+  .topbarLogo {
+    display: none;
+  }
+
+  .topbar {
+    padding: 0 var(--space-8);
+  }
+}
+
+.content {
+  width: 100%;
+  max-width: var(--container-max);
+  padding: var(--space-6) var(--space-4) var(--space-12);
+}
+
+.content:focus {
+  outline: none;
+}
+
+@media (min-width: 64rem) {
+  .content {
+    padding: var(--space-8);
+  }
+}

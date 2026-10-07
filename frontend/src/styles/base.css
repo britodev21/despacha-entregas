@@ -7,7 +7,8 @@ body {
   line-height: var(--leading-normal);
   color: var(--color-text);
   background-color: var(--color-bg);
-  transition: background-color var(--duration-base) var(--ease-standard),
+  transition:
+    background-color var(--duration-base) var(--ease-standard),
     color var(--duration-base) var(--ease-standard);
 }
 

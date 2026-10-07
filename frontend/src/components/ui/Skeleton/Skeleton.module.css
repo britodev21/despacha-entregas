@@ -1,0 +1,12 @@
+.skeleton {
+  display: block;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-sunken);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+  }
+}

@@ -18,15 +18,30 @@ export function useHealth() {
   const check = useCallback(async (signal) => {
     try {
       const { data } = await api.get("/health", { signal });
-      setState({ status: data.status, database: data.database, checkedAt: new Date(), error: null });
+      setState({
+        status: data.status,
+        database: data.database,
+        checkedAt: new Date(),
+        error: null,
+      });
     } catch (error) {
       if (axios.isCancel(error)) return;
       // 503 traz o corpo do health check: a API respondeu, o banco não.
       if (error.response?.status === 503) {
-        setState({ status: "degraded", database: "unavailable", checkedAt: new Date(), error: null });
+        setState({
+          status: "degraded",
+          database: "unavailable",
+          checkedAt: new Date(),
+          error: null,
+        });
         return;
       }
-      setState({ status: "offline", database: null, checkedAt: new Date(), error: toApiError(error) });
+      setState({
+        status: "offline",
+        database: null,
+        checkedAt: new Date(),
+        error: toApiError(error),
+      });
     }
   }, []);
 

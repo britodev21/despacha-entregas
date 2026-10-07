@@ -1,0 +1,175 @@
+.page {
+  display: grid;
+  min-height: 100dvh;
+}
+
+@media (min-width: 64rem) {
+  .page {
+    grid-template-columns: minmax(24rem, 5fr) 7fr;
+  }
+}
+
+/* ---------- Painel de marca (desktop) ---------- */
+
+.brand {
+  display: none;
+}
+
+@media (min-width: 64rem) {
+  .brand {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-10);
+    padding: var(--space-10);
+    overflow: hidden;
+    background-color: var(--color-panel-bg);
+    color: var(--color-panel-fg);
+  }
+}
+
+.brandLogo {
+  color: inherit;
+}
+
+.brandBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  max-width: 26rem;
+}
+
+.tagline {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-extrabold);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.025em;
+}
+
+.flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+.stepIcon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-md);
+  background-color: var(--color-panel-chip);
+  color: var(--color-panel-accent);
+}
+
+.stepIcon > svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.stepTitle {
+  display: block;
+  font-weight: var(--weight-bold);
+}
+
+.stepText {
+  display: block;
+  font-size: var(--text-sm);
+  color: var(--color-panel-muted);
+}
+
+/* Rota decorativa no rodapé do painel */
+.route {
+  width: 100%;
+  max-width: 28rem;
+  fill: none;
+  stroke: var(--color-panel-accent);
+  stroke-width: 2.5;
+  stroke-dasharray: 2 9;
+  stroke-linecap: round;
+  opacity: 0.6;
+}
+
+.route circle {
+  fill: var(--color-panel-accent);
+  stroke: none;
+}
+
+.route .routeEnd {
+  fill: var(--orange-400);
+}
+
+/* ---------- Formulário ---------- */
+
+.main {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: var(--space-16) var(--space-4) var(--space-8);
+}
+
+.theme {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: 24rem;
+}
+
+.mobileLogo {
+  align-self: flex-start;
+}
+
+@media (min-width: 64rem) {
+  .mobileLogo {
+    display: none;
+  }
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.title {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: -0.025em;
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.form > button {
+  margin-top: var(--space-2);
+}
+
+.help {
+  font-size: var(--text-sm);
+  color: var(--color-text-subtle);
+  text-align: center;
+}
