@@ -31,4 +31,9 @@ export default defineConfig({
     // Sem source maps públicos em produção: não entregar o código-fonte legível.
     sourcemap: false,
   },
+  test: {
+    environment: "jsdom",
+    setupFiles: ["./src/test/setup.js"],
+    restoreMocks: true,
+  },
 });
