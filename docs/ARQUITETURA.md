@@ -689,3 +689,16 @@ Cada fase termina com commit próprio.
 | Foco em diálogos | `data-autofocus` no primeiro campo | O `<dialog>` focaria o botão Fechar; o `autoFocus` do React não vira atributo |
 | Models × migrations | CHECKs de enum explícitos + teste com `alembic check` | Evita constraint duplicada e migration esquecida |
 
+## 15. Decisões de implementação — Fase 5 (Área do entregador)
+
+| Tema | Decisão | Por quê |
+|---|---|---|
+| Rotas do entregador | `/me/deliveries`, separadas, filtrando `deliverer_id = usuário logado` em toda consulta | Um "if entregador" esquecido numa rota compartilhada vira IDOR |
+| Passos permitidos | Entregador só inicia, finaliza, registra ocorrência e retoma (as próprias) | Menor privilégio: cancelar e redistribuir é decisão do operador |
+| Comprovante | Tabela `delivery_proofs` (1 por entrega): quem recebeu, observação, localização | Foto e assinatura entram na fase 7 sem mudar o fluxo |
+| Ocorrência | Tabela `delivery_occurrences`; registrar move a entrega para `ISSUE` | O operador vê no quadro o que precisa de atenção |
+| Localização | Pontual e opcional, só ao finalizar ou registrar ocorrência | Rastreamento contínuo é a fase 6; GPS negado não bloqueia o trabalho |
+| Interface | Uma tela por entrega; endereço grande; Maps, Waze e ligar em botões grandes; ação principal fixa no rodapé com área segura | Uso com uma mão, na rua, com pressa |
+| Cobrança | Texto direto ("Cobrar R$ 58,90 · Dinheiro · levar R$ 41,10") com troco calculado em centavos inteiros | Erro de centavo vira prejuízo no fim do dia |
+| Testes do frontend | Vitest + Testing Library; lógica pura em ambiente `node` | Regras de dinheiro e permissão com rede de segurança automática |
+

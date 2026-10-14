@@ -43,7 +43,7 @@ O DESPACHA busca oferecer uma experiência simples para o usuário final, manten
 
 ## 🏗️ Status
 
-🚧 **Em desenvolvimento** — Fase 4 (Entregas) concluída.
+🚧 **Em desenvolvimento** — Fase 5 (Área do entregador) concluída.
 
 O projeto está sendo desenvolvido inicialmente como um MVP, com evolução progressiva das funcionalidades.
 As decisões de arquitetura e o plano de fases estão em [docs/ARQUITETURA.md](docs/ARQUITETURA.md).
@@ -96,6 +96,7 @@ uv run python -m app.cli seed-dev
 cd frontend
 npm install
 npm run dev
+npm test          # testes automatizados (Vitest)
 ```
 
 App em `http://127.0.0.1:5173`. O Vite encaminha `/api` para o backend (mesma origem, sem CORS).
