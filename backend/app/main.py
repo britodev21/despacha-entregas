@@ -7,7 +7,8 @@ from app.core.logging import configure_logging
 from app.core.middleware import RequestContextMiddleware
 from app.modules.auth.router import router as auth_router
 from app.modules.clients.router import router as clients_router
-from app.modules.deliveries.router import deliverers_router, me_router
+from app.modules.companies.router import router as company_router
+from app.modules.deliveries.router import deliverers_router, files_router, me_router
 from app.modules.deliveries.router import router as deliveries_router
 from app.modules.health.router import router as health_router
 from app.modules.tracking.router import me_router as tracking_me_router
@@ -55,6 +56,8 @@ def create_app() -> FastAPI:
     api.include_router(me_router)
     api.include_router(tracking_router)
     api.include_router(tracking_me_router)
+    api.include_router(files_router)
+    api.include_router(company_router)
     app.include_router(api)
 
     return app

@@ -2,14 +2,16 @@ import uuid
 from datetime import date
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from app.core import storage
 from app.core.db import get_db
 from app.core.permissions import Permission
-from app.modules.auth.dependencies import require_permission
+from app.modules.auth.dependencies import CurrentUser, require_permission
 from app.modules.deliveries import service
-from app.modules.deliveries.models import Delivery
+from app.modules.deliveries.models import Delivery, DeliveryFile, FileKind
 from app.modules.deliveries.schemas import (
     AssignIn,
     CancelIn,
@@ -19,12 +21,14 @@ from app.modules.deliveries.schemas import (
     DeliveryOut,
     DeliveryPage,
     DeliveryUpdate,
+    FileOut,
     IssueIn,
 )
 from app.modules.deliveries.state_machine import DeliveryStatus
 from app.modules.users.models import User
 
 router = APIRouter(prefix="/deliveries", tags=["deliveries"])
+files_router = APIRouter(prefix="/files", tags=["files"])
 deliverers_router = APIRouter(prefix="/deliverers", tags=["deliveries"])
 # Área do entregador: rotas separadas, sempre restritas às próprias entregas.
 me_router = APIRouter(prefix="/me/deliveries", tags=["deliverer"])
@@ -163,3 +167,45 @@ def my_complete(delivery_id: DeliveryId, body: CompleteIn, user: Deliverer, db: 
 @me_router.post("/{delivery_id}/issues", response_model=DeliveryOut)
 def my_issue(delivery_id: DeliveryId, body: IssueIn, user: Deliverer, db: DB) -> Delivery:
     return service.deliverer_report_issue(db, user, delivery_id, body)
+
+
+# ---------------------------------------------------------------- arquivos
+
+
+def _read_upload(file: UploadFile) -> bytes:
+    return storage.read_limited(file.file, service.max_upload_bytes())
+
+
+@router.post("/{delivery_id}/files", response_model=FileOut, status_code=status.HTTP_201_CREATED)
+def upload_file(
+    delivery_id: DeliveryId,
+    user: Manager,
+    db: DB,
+    kind: Annotated[FileKind, Form()],
+    file: Annotated[UploadFile, File()],
+) -> DeliveryFile:
+    delivery = service.get_delivery(db, user.company_id, delivery_id, for_update=True)
+    return service.upload_file(db, user, delivery, kind, _read_upload(file))
+
+
+@me_router.post("/{delivery_id}/files", response_model=FileOut, status_code=status.HTTP_201_CREATED)
+def my_upload_file(
+    delivery_id: DeliveryId,
+    user: Deliverer,
+    db: DB,
+    kind: Annotated[FileKind, Form()],
+    file: Annotated[UploadFile, File()],
+) -> DeliveryFile:
+    delivery = service.get_own_delivery(db, user, delivery_id, for_update=True)
+    return service.upload_file(db, user, delivery, kind, _read_upload(file))
+
+
+@files_router.get("/{file_id}", response_class=FileResponse)
+def download_file(file_id: uuid.UUID, user: CurrentUser, db: DB) -> FileResponse:
+    file = service.get_file(db, user, file_id)
+    return FileResponse(
+        storage.resolve(file.storage_key),
+        media_type=file.content_type,
+        # inline: o navegador mostra; o nome não revela nada do cliente.
+        headers={"Content-Disposition": f'inline; filename="{file.id}"'},
+    )

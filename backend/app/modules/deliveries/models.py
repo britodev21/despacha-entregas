@@ -31,6 +31,12 @@ class PaymentMethod(StrEnum):
     OTHER = "OTHER"
 
 
+class FileKind(StrEnum):
+    PROOF_PHOTO = "PROOF_PHOTO"
+    PROOF_SIGNATURE = "PROOF_SIGNATURE"
+    OCCURRENCE_PHOTO = "OCCURRENCE_PHOTO"
+
+
 class OccurrenceType(StrEnum):
     CUSTOMER_ABSENT = "CUSTOMER_ABSENT"
     WRONG_ADDRESS = "WRONG_ADDRESS"
@@ -129,6 +135,9 @@ class Delivery(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     proof: Mapped[DeliveryProof | None] = relationship(
         back_populates="delivery", lazy="selectin", uselist=False
     )
+    files: Mapped[list[DeliveryFile]] = relationship(
+        back_populates="delivery", lazy="selectin", order_by="DeliveryFile.created_at"
+    )
 
 
 class DeliveryOccurrence(UUIDPrimaryKeyMixin, Base):
@@ -177,3 +186,33 @@ class DeliveryProof(UUIDPrimaryKeyMixin, Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     delivery: Mapped[Delivery] = relationship(back_populates="proof")
+
+
+class DeliveryFile(UUIDPrimaryKeyMixin, Base):
+    """Foto ou assinatura ligada a uma entrega (comprovante ou ocorrência).
+
+    O arquivo fica no disco (ver app/core/storage.py); aqui só a referência.
+    """
+
+    __tablename__ = "delivery_files"
+    __table_args__ = (_check_in("kind", FileKind),)
+
+    company_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("companies.id", ondelete="RESTRICT"), index=True
+    )
+    delivery_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("deliveries.id", ondelete="CASCADE"), index=True
+    )
+    occurrence_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("delivery_occurrences.id", ondelete="SET NULL")
+    )
+    kind: Mapped[FileKind] = mapped_column(_enum(FileKind))
+    storage_key: Mapped[str] = mapped_column(String(200))
+    content_type: Mapped[str] = mapped_column(String(50))
+    size_bytes: Mapped[int]
+    uploaded_by: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    delivery: Mapped[Delivery] = relationship(back_populates="files")

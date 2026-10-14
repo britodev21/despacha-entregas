@@ -5,6 +5,7 @@ assim os valores são validados uma única vez, na inicialização.
 """
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Annotated, Literal
 
 from pydantic import Field, SecretStr, field_validator
@@ -39,6 +40,11 @@ class Settings(BaseSettings):
     # Rastreamento (fase 6): por quantos dias guardar as posições dos entregadores.
     # Localização é dado pessoal (LGPD): guardar só o necessário.
     location_retention_days: int = Field(default=30, ge=1, le=365)
+
+    # Arquivos enviados (fotos e assinaturas dos comprovantes). Fora da pasta
+    # pública: só saem por um endpoint que confere a permissão.
+    upload_dir: Path = Path("storage/uploads")
+    max_upload_mb: int = Field(default=8, ge=1, le=25)
 
     # Senha dos usuários de demonstração criados por `python -m app.cli seed-dev`.
     # Só em desenvolvimento; o comando se recusa a rodar em produção.

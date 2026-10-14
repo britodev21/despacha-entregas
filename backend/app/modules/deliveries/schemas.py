@@ -3,10 +3,17 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Annotated, Self
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    computed_field,
+    field_validator,
+    model_validator,
+)
 
 from app.core.validators import normalize_name, normalize_phone
-from app.modules.deliveries.models import OccurrenceType, PaymentMethod
+from app.modules.deliveries.models import FileKind, OccurrenceType, PaymentMethod
 from app.modules.deliveries.state_machine import DeliveryStatus
 
 # Dinheiro: decimal com 2 casas, nunca float (0.1 + 0.2 != 0.3 em float).
@@ -137,6 +144,8 @@ class CompleteIn(_Located):
 class IssueIn(_Located):
     type: OccurrenceType
     description: str | None = Field(default=None, max_length=500)
+    # Foto opcional, enviada antes por POST .../files (kind=OCCURRENCE_PHOTO).
+    photo_file_id: uuid.UUID | None = None
 
     @field_validator("description", mode="before")
     @classmethod
@@ -165,6 +174,23 @@ class OccurrenceOut(BaseModel):
     lng: Decimal | None
     created_at: datetime
     reporter: PersonOut | None
+
+
+class FileOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    kind: FileKind
+    occurrence_id: uuid.UUID | None
+    content_type: str
+    size_bytes: int
+    created_at: datetime
+
+    @computed_field
+    @property
+    def url(self) -> str:
+        # Download sempre pela API: a permissão é conferida a cada acesso.
+        return f"/api/v1/files/{self.id}"
 
 
 class ProofOut(BaseModel):
@@ -220,6 +246,7 @@ class DeliveryOut(BaseModel):
     canceled_at: datetime | None
     occurrences: list[OccurrenceOut]
     proof: ProofOut | None
+    files: list[FileOut]
 
 
 class DeliveryPage(BaseModel):

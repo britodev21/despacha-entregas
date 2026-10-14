@@ -10,6 +10,7 @@ Estratégia:
 """
 
 import os
+import tempfile
 from pathlib import Path
 
 from dotenv import dotenv_values
@@ -23,6 +24,8 @@ for _key in ("TEST_DATABASE_URL", "TEST_MIGRATIONS_DATABASE_URL"):
         # Proteção: os testes APAGAM o banco. Nunca apontar para dev/produção.
         raise RuntimeError(f"{_key} deve apontar para um banco cujo nome termina com _test.")
 os.environ["APP_ENV"] = "test"
+# Uploads dos testes numa pasta temporária, nunca dentro do projeto.
+os.environ["UPLOAD_DIR"] = tempfile.mkdtemp(prefix="despacha-test-uploads-")
 os.environ["DATABASE_URL"] = _env["TEST_DATABASE_URL"]
 os.environ["MIGRATIONS_DATABASE_URL"] = _env["TEST_MIGRATIONS_DATABASE_URL"]
 
@@ -88,7 +91,15 @@ def db() -> Session:
 
 @pytest.fixture
 def client(db: Session) -> TestClient:
-    app.dependency_overrides[get_db] = lambda: db
+    def _get_db():
+        # Igual à sessão real: erro na requisição desfaz o que não foi commitado.
+        try:
+            yield db
+        except Exception:
+            db.rollback()
+            raise
+
+    app.dependency_overrides[get_db] = _get_db
     # https: o cookie de refresh é Secure e só é devolvido em conexões HTTPS.
     with TestClient(app, base_url="https://testserver") as test_client:
         yield test_client

@@ -14,16 +14,21 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import case, func, or_, select, update
 from sqlalchemy.orm import Session
 
+from app.core import storage
+from app.core.config import get_settings
 from app.core.errors import AppError, ConflictError, NotFoundError
-from app.core.permissions import Role
+from app.core.permissions import Permission, Role, has_permission
 from app.modules.audit import service as audit
 from app.modules.audit.models import AuditAction
 from app.modules.clients.models import Client, ClientAddress
 from app.modules.companies.models import Company
+from app.modules.companies.service import company_settings
 from app.modules.deliveries.models import (
     Delivery,
+    DeliveryFile,
     DeliveryOccurrence,
     DeliveryProof,
+    FileKind,
     PaymentMethod,
 )
 from app.modules.deliveries.schemas import (
@@ -265,6 +270,7 @@ def complete(
 
 def report_issue(db: Session, actor: User, delivery_id: uuid.UUID, data: IssueIn) -> Delivery:
     delivery = get_delivery(db, actor.company_id, delivery_id, for_update=True)
+    _occurrence_photo(delivery, data)
     _transition(db, actor, delivery, S.ISSUE)
     _add_occurrence(db, actor, delivery, data)
     db.commit()
@@ -338,6 +344,8 @@ def deliverer_complete(
     db: Session, user: User, delivery_id: uuid.UUID, proof: CompleteIn
 ) -> Delivery:
     delivery = get_own_delivery(db, user, delivery_id, for_update=True)
+    if deliverer_can_transition(delivery.status, S.DELIVERED):
+        _check_proof_requirements(user, delivery, proof)
     _deliverer_transition(db, user, delivery, S.DELIVERED)
     _add_proof(db, user, delivery, proof)
     db.commit()
@@ -348,6 +356,7 @@ def deliverer_report_issue(
     db: Session, user: User, delivery_id: uuid.UUID, data: IssueIn
 ) -> Delivery:
     delivery = get_own_delivery(db, user, delivery_id, for_update=True)
+    _occurrence_photo(delivery, data)
     _deliverer_transition(db, user, delivery, S.ISSUE)
     _add_occurrence(db, user, delivery, data)
     db.commit()
@@ -363,6 +372,79 @@ def _deliverer_transition(
             "Esta ação não está disponível para a entrega agora.", code="INVALID_TRANSITION"
         )
     _apply(db, user, delivery, target)
+
+
+# ------------------------------------------------------------- arquivos
+
+# Entregador anexa durante o trabalho; operador, enquanto a entrega não terminou.
+_DELIVERER_UPLOAD = (S.IN_ROUTE, S.ISSUE)
+
+
+def upload_file(
+    db: Session, actor: User, delivery: Delivery, kind: FileKind, data: bytes
+) -> DeliveryFile:
+    if delivery.status in FINAL_STATUSES:
+        raise ConflictError("Entrega finalizada não recebe novos arquivos.", code="DELIVERY_FINAL")
+    if actor.role == Role.DELIVERER and delivery.status not in _DELIVERER_UPLOAD:
+        raise ConflictError("Inicie a entrega antes de anexar fotos.", code="INVALID_STATE")
+    if len([f for f in delivery.files if f.kind == kind]) >= 5:
+        raise ConflictError("Limite de arquivos desse tipo atingido.", code="FILE_LIMIT")
+
+    stored = storage.save_image(
+        data,
+        company_id=delivery.company_id,
+        kind="signature" if kind == FileKind.PROOF_SIGNATURE else "photo",
+    )
+    file = DeliveryFile(
+        company_id=delivery.company_id,
+        delivery_id=delivery.id,
+        kind=kind,
+        storage_key=stored.key,
+        content_type=stored.content_type,
+        size_bytes=stored.size_bytes,
+        uploaded_by=actor.id,
+    )
+    db.add(file)
+    db.flush()
+    _log(db, actor, AuditAction.DELIVERY_FILE_UPLOADED, delivery, {"kind": kind})
+    db.commit()
+    return file
+
+
+def max_upload_bytes() -> int:
+    return get_settings().max_upload_mb * 1024 * 1024
+
+
+def get_file(db: Session, user: User, file_id: uuid.UUID) -> DeliveryFile:
+    """Arquivo só para quem pode ver a entrega: operador/admin da empresa ou
+    o entregador dela. Fora isso, 404 (nem confirma que existe)."""
+    file = db.scalar(
+        select(DeliveryFile).where(
+            DeliveryFile.id == file_id, DeliveryFile.company_id == user.company_id
+        )
+    )
+    if file is None:
+        raise NotFoundError("Arquivo não encontrado.")
+    is_manager = has_permission(user.role, Permission.DELIVERIES_MANAGE)
+    if not is_manager and file.delivery.deliverer_id != user.id:
+        raise NotFoundError("Arquivo não encontrado.")
+    return file
+
+
+def _check_proof_requirements(user: User, delivery: Delivery, proof: CompleteIn) -> None:
+    rules = company_settings(user.company).proof
+    kinds = {f.kind for f in delivery.files if f.occurrence_id is None}
+    missing = []
+    if rules.require_recipient_name and not proof.received_by_name:
+        missing.append("nome de quem recebeu")
+    if rules.require_photo and FileKind.PROOF_PHOTO not in kinds:
+        missing.append("foto")
+    if rules.require_signature and FileKind.PROOF_SIGNATURE not in kinds:
+        missing.append("assinatura")
+    if missing:
+        raise AppError(
+            f"Comprovante incompleto: falta {', '.join(missing)}.", code="PROOF_INCOMPLETE"
+        )
 
 
 # --------------------------------------------------------------- interno
@@ -451,16 +533,37 @@ def _add_proof(db: Session, actor: User, delivery: Delivery, data: CompleteIn | 
     db.refresh(delivery, ["proof"])
 
 
-def _add_occurrence(db: Session, actor: User, delivery: Delivery, data: IssueIn) -> None:
-    db.add(
-        DeliveryOccurrence(
-            company_id=delivery.company_id,
-            delivery_id=delivery.id,
-            reported_by=actor.id,
-            **data.model_dump(),
-        )
+def _occurrence_photo(delivery: Delivery, data: IssueIn) -> DeliveryFile | None:
+    """Valida a foto ANTES de qualquer mudança: falhar cedo, sem efeito colateral."""
+    if not data.photo_file_id:
+        return None
+    photo = next(
+        (
+            f
+            for f in delivery.files
+            if f.id == data.photo_file_id
+            and f.kind == FileKind.OCCURRENCE_PHOTO
+            and f.occurrence_id is None
+        ),
+        None,
     )
+    if photo is None:
+        raise NotFoundError("Foto da ocorrência não encontrada.")
+    return photo
+
+
+def _add_occurrence(db: Session, actor: User, delivery: Delivery, data: IssueIn) -> None:
+    photo = _occurrence_photo(delivery, data)
+    occurrence = DeliveryOccurrence(
+        company_id=delivery.company_id,
+        delivery_id=delivery.id,
+        reported_by=actor.id,
+        **data.model_dump(exclude={"photo_file_id"}),
+    )
+    db.add(occurrence)
     db.flush()
+    if photo is not None:
+        photo.occurrence_id = occurrence.id
     _log(db, actor, AuditAction.DELIVERY_ISSUE_REPORTED, delivery, {"type": data.type})
     # Recarrega a relação: a resposta já sai com a ocorrência nova.
     db.refresh(delivery, ["occurrences"])
