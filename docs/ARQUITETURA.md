@@ -716,3 +716,18 @@ Cada fase termina com commit próprio.
 | Retenção | `python -m app.cli purge-locations` (padrão 30 dias, `LOCATION_RETENTION_DAYS`) | LGPD: localização é dado pessoal; agendado na fase 10 |
 | Transparência | Selo "Localização ativa" no topo e aviso na lista do entregador | O entregador sabe quando está sendo acompanhado |
 
+## 17. Decisões de implementação — Fase 7 (Comprovantes)
+
+| Tema | Decisão | Por quê |
+|---|---|---|
+| Fluxo | Upload dos arquivos primeiro (`POST …/files`), finalização depois; a finalização confere as exigências | Rede caiu no meio? Nada é finalizado sem comprovante; basta tentar de novo |
+| Validação de imagem | Conteúdo real via Pillow (`verify` + `load`), formatos JPEG/PNG/WebP, limite de 40 Mpx e de tamanho | Extensão e Content-Type enviados pelo cliente mentem; decompression bomb derruba servidor |
+| Recodificação | Foto → JPEG 82% até 1600 px; assinatura → PNG; nenhum EXIF copiado | Remove GPS/modelo do aparelho e qualquer conteúdo escondido no arquivo |
+| Nome no disco | `{empresa}/{ano}/{mês}/{uuid}.{ext}` gerado pelo servidor, fora da pasta pública | Sem path traversal; nome não revela o cliente |
+| Download | `GET /files/{id}` confere empresa e dono; 404 para quem não pode ver | Arquivo é dado pessoal; URL adivinhada não basta |
+| Exibição no navegador | Axios baixa com o token e a página mostra via `blob:` | `<img src>` não envia o header `Authorization`; **liberar `blob:` em `img-src` na CSP (fase 10)** |
+| Compressão no celular | `createImageBitmap` + canvas → JPEG antes de enviar | ~4 MB viram ~200 KB: essencial em 4G ruim |
+| Assinatura | Canvas com Pointer Events, `touch-action: none`, resolução real da tela, fundo branco | Toque, caneta e mouse com o mesmo código; traço nítido; documento legível em qualquer tema |
+| Exigências | Configuráveis pelo admin (nome, foto, assinatura); valem para o entregador; operador finaliza por exceção (auditado) | Cada negócio tem uma necessidade (farmácia ≠ pizzaria) |
+| Testes | Sessão de teste faz rollback em erro, como a sessão real | Um teste revelou estado "sujo" vazando entre requisições |
+
