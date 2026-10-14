@@ -731,3 +731,16 @@ Cada fase termina com commit próprio.
 | Exigências | Configuráveis pelo admin (nome, foto, assinatura); valem para o entregador; operador finaliza por exceção (auditado) | Cada negócio tem uma necessidade (farmácia ≠ pizzaria) |
 | Testes | Sessão de teste faz rollback em erro, como a sessão real | Um teste revelou estado "sujo" vazando entre requisições |
 
+## 18. Decisões de implementação — Fase 8 (Painel, histórico e relatórios)
+
+| Tema | Decisão | Por quê |
+|---|---|---|
+| Forma do painel | Stat tiles + lista "Precisa de atenção"; nenhum gráfico | A pergunta é "o que está acontecendo agora?", e a resposta é um número, não uma tendência |
+| Comparação | "Entregas hoje" vs. **ontem até o mesmo horário** | Comparar dia parcial com dia inteiro sempre pareceria queda |
+| "Precisa de atenção" | Ocorrências → atrasadas → pendentes há mais de 15 min, mais antigas primeiro, com link direto para a entrega | Responde "o que faço agora?" sem caçar no quadro |
+| Hoje | Limites do dia calculados no fuso da empresa | Meia-noite em São Paulo é 03:00 UTC |
+| Relatório por entregador | Entregues e taxas pela data de entrega; canceladas e ocorrências pela data do fato; até 93 dias | É o "acerto do dia" com o motoboy, sem virar sistema financeiro |
+| Exportação CSV | `;` + vírgula decimal + UTF-8 com BOM (Excel brasileiro); células iniciadas por `= + - @` prefixadas com `'` | Abre certo no Excel e não executa fórmula maliciosa (CSV injection) |
+| Minimização na exportação | Sem telefone nem endereço completo; exportação auditada | Exportar dados pessoais em massa é ação sensível (LGPD) |
+| Histórico | Mesmo endpoint de entregas com filtros (período, status, entregador, busca), paginação de 50 | Sem duplicar API; sem BI |
+
