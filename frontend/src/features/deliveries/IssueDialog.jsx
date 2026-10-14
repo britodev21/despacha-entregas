@@ -5,8 +5,10 @@ import { splitApiError } from "@/api/formErrors";
 import { Alert } from "@/components/ui/Alert/Alert";
 import { Button } from "@/components/ui/Button/Button";
 import { Dialog } from "@/components/ui/Dialog/Dialog";
+import { PhotoInput } from "@/components/ui/PhotoInput/PhotoInput";
 import { TextArea } from "@/components/ui/TextField/TextArea";
 import { cx } from "@/lib/cx";
+import { compressImage, uploadDeliveryFile } from "@/lib/image";
 
 import { useOneShotLocation } from "@/lib/useOneShotLocation";
 
@@ -19,6 +21,7 @@ export function IssueDialog({ delivery, basePath, onClose, onDone }) {
   const location = useOneShotLocation();
   const [type, setType] = useState("");
   const [description, setDescription] = useState("");
+  const [photo, setPhoto] = useState(null);
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -37,9 +40,23 @@ export function IssueDialog({ delivery, basePath, onClose, onDone }) {
     }
     setSaving(true);
     try {
+      let photoFileId = null;
+      if (photo) {
+        const compressed = await compressImage(photo);
+        const file = await uploadDeliveryFile(
+          api,
+          basePath,
+          delivery.id,
+          "OCCURRENCE_PHOTO",
+          compressed,
+          "ocorrencia.jpg",
+        );
+        photoFileId = file.id;
+      }
       const { data } = await api.post(`${basePath}/${delivery.id}/issues`, {
         type,
         description,
+        photo_file_id: photoFileId,
         ...(location.coords ?? {}),
       });
       onDone(data);
@@ -103,6 +120,12 @@ export function IssueDialog({ delivery, basePath, onClose, onDone }) {
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           error={errors.description}
+        />
+        <PhotoInput
+          label="Foto"
+          value={photo}
+          onChange={setPhoto}
+          hint="Opcional. Ex.: portão fechado, produto danificado."
         />
         <LocationHint location={location} />
       </form>

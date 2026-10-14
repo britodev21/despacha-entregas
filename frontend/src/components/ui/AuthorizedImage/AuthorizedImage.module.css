@@ -1,0 +1,17 @@
+.link {
+  display: inline-block;
+  border-radius: var(--radius-md);
+}
+
+.image {
+  max-width: 100%;
+  max-height: 10rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: #ffffff; /* assinaturas PNG transparentes ficam legíveis */
+}
+
+.failed {
+  font-size: var(--text-sm);
+  color: var(--color-text-subtle);
+}

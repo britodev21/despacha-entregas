@@ -14,6 +14,7 @@ import { useState } from "react";
 
 import { api, toApiError } from "@/api/client";
 import { Alert } from "@/components/ui/Alert/Alert";
+import { AuthorizedImage } from "@/components/ui/AuthorizedImage/AuthorizedImage";
 import { Badge } from "@/components/ui/Badge/Badge";
 import { Button } from "@/components/ui/Button/Button";
 import { ConfirmDialog } from "@/components/ui/Dialog/ConfirmDialog";
@@ -344,6 +345,11 @@ export function DeliveryDrawer({ deliveryId, onClose, onChanged, onEdit }) {
                         Registrada por {occurrence.reporter.name}
                       </span>
                     )}
+                    {delivery.files
+                      .filter((file) => file.occurrence_id === occurrence.id)
+                      .map((file) => (
+                        <AuthorizedImage key={file.id} src={file.url} alt="Foto da ocorrência" />
+                      ))}
                   </li>
                 ))}
               </ul>
@@ -377,6 +383,27 @@ export function DeliveryDrawer({ deliveryId, onClose, onChanged, onEdit }) {
                   )}
                 </dd>
               </dl>
+              {delivery.files.some((file) => !file.occurrence_id) && (
+                <div className={styles.thumbs}>
+                  {delivery.files
+                    .filter((file) => !file.occurrence_id)
+                    .map((file) => (
+                      <div key={file.id}>
+                        <span className={styles.thumbLabel}>
+                          {file.kind === "PROOF_SIGNATURE" ? "Assinatura" : "Foto"}
+                        </span>
+                        <AuthorizedImage
+                          src={file.url}
+                          alt={
+                            file.kind === "PROOF_SIGNATURE"
+                              ? "Assinatura de quem recebeu"
+                              : "Foto da entrega"
+                          }
+                        />
+                      </div>
+                    ))}
+                </div>
+              )}
             </section>
           )}
 

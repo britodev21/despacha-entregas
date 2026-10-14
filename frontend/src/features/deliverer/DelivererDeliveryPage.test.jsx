@@ -49,6 +49,20 @@ function delivery(overrides = {}) {
   };
 }
 
+const NO_RULES = { require_recipient_name: false, require_photo: false, require_signature: false };
+
+/** api.get responde por URL: a entrega e as regras do comprovante da empresa. */
+function mockGet(...deliveries) {
+  const queue = [...deliveries];
+  api.get.mockImplementation((url) => {
+    if (url === "/company") {
+      return Promise.resolve({ data: { settings: { proof: mockGet.rules ?? NO_RULES } } });
+    }
+    const next = queue.length > 1 ? queue.shift() : queue[0];
+    return next instanceof Error ? Promise.reject(next) : Promise.resolve({ data: next });
+  });
+}
+
 function renderPage() {
   return render(
     <ToastProvider>
@@ -66,10 +80,11 @@ describe("DelivererDeliveryPage", () => {
   beforeEach(() => {
     api.get.mockReset();
     api.post.mockReset();
+    mockGet.rules = NO_RULES;
   });
 
   it("mostra o essencial para a rua: endereço, referência, navegação e cobrança", async () => {
-    api.get.mockResolvedValue({ data: delivery() });
+    mockGet(delivery());
     renderPage();
 
     expect(await screen.findByRole("heading", { name: "Dona Maria" })).toBeInTheDocument();
@@ -86,9 +101,7 @@ describe("DelivererDeliveryPage", () => {
   });
 
   it("inicia a entrega e passa a oferecer finalizar", async () => {
-    api.get
-      .mockResolvedValueOnce({ data: delivery() })
-      .mockResolvedValueOnce({ data: delivery({ status: "IN_ROUTE" }) });
+    mockGet(delivery(), delivery({ status: "IN_ROUTE" }));
     api.post.mockResolvedValue({ data: delivery({ status: "IN_ROUTE" }) });
     renderPage();
 
@@ -100,7 +113,7 @@ describe("DelivererDeliveryPage", () => {
   });
 
   it("finaliza com o nome de quem recebeu e volta para a lista", async () => {
-    api.get.mockResolvedValue({ data: delivery({ status: "IN_ROUTE" }) });
+    mockGet(delivery({ status: "IN_ROUTE" }));
     api.post.mockResolvedValue({ data: delivery({ status: "DELIVERED" }) });
     renderPage();
 
@@ -118,8 +131,21 @@ describe("DelivererDeliveryPage", () => {
   });
 
   it("entrega que não é dele (404) explica e oferece voltar", async () => {
-    api.get.mockRejectedValue({ status: 404 });
+    mockGet(Object.assign(new Error("404"), { status: 404 }));
     renderPage();
     expect(await screen.findByText("Entrega não encontrada")).toBeInTheDocument();
+  });
+
+  it("com foto obrigatória, não finaliza sem foto (e nem chama a API)", async () => {
+    mockGet.rules = { ...NO_RULES, require_photo: true };
+    mockGet(delivery({ status: "IN_ROUTE" }));
+    renderPage();
+
+    await userEvent.click(await screen.findByRole("button", { name: /Finalizar entrega/ }));
+    expect(await screen.findByText("(obrigatória)")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /Confirmar entrega/ }));
+
+    expect(await screen.findByText("A foto é obrigatória.")).toBeInTheDocument();
+    expect(api.post).not.toHaveBeenCalled();
   });
 });

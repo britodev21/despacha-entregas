@@ -9,6 +9,7 @@ import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { OperationsPage } from "@/features/deliveries/OperationsPage";
 import { DelivererDeliveryPage } from "@/features/deliverer/DelivererDeliveryPage";
 import { DelivererHomePage } from "@/features/deliverer/DelivererHomePage";
+import { SettingsPage } from "@/features/settings/SettingsPage";
 import { NotFoundPage } from "@/features/system/NotFoundPage";
 import { RouteErrorPage } from "@/features/system/RouteErrorPage";
 import { SystemStatusPage } from "@/features/system/SystemStatusPage";
@@ -60,6 +61,14 @@ export const router = createBrowserRouter([
                   { index: true, element: <ClientsPage /> },
                   { path: ":clientId", element: <ClientDetailPage /> },
                 ],
+              },
+              {
+                path: "configuracoes",
+                element: (
+                  <RequirePermission permission={PERMISSIONS.SETTINGS_MANAGE}>
+                    <SettingsPage />
+                  </RequirePermission>
+                ),
               },
               {
                 path: "usuarios",
