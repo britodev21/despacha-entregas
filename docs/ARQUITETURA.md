@@ -702,3 +702,17 @@ Cada fase termina com commit próprio.
 | Cobrança | Texto direto ("Cobrar R$ 58,90 · Dinheiro · levar R$ 41,10") com troco calculado em centavos inteiros | Erro de centavo vira prejuízo no fim do dia |
 | Testes do frontend | Vitest + Testing Library; lógica pura em ambiente `node` | Regras de dinheiro e permissão com rede de segurança automática |
 
+## 16. Decisões de implementação — Fase 6 (Rastreamento)
+
+| Tema | Decisão | Por quê |
+|---|---|---|
+| Privacidade | Servidor só grava posição com entrega `IN_ROUTE`/`ISSUE`; fora disso descarta e responde `tracking=false` | A regra de "não rastrear fora da operação" não pode depender do app |
+| Quando ligar o GPS | App consulta `GET /me/tracking` (a cada 30 s e logo após iniciar/finalizar) | GPS ligado só quando necessário: bateria e privacidade |
+| Frequência | 20 s ou 50 m (haversine), o que vier primeiro; rate limit de 12/min por entregador no servidor | Mapa útil sem inundar o banco |
+| Relógio do celular | Fora de [-1 h, +2 min] do servidor, vale o horário do servidor | Celulares com hora errada bagunçariam a "última posição" |
+| Última posição | `DISTINCT ON (user_id)` com índice `(user_id, recorded_at)` | Uma consulta para todos os entregadores |
+| Mapa | Leaflet + tiles configuráveis (`VITE_MAP_TILE_URL`), marcador com iniciais via `divIcon`, carregado sob demanda | Sem custo de API paga; sem ícones quebrados no bundle; Leaflet fora do bundle principal |
+| Sinal antigo | Sem posição há 5 min: marcador esmaecido + "sem sinal recente" | Navegador suspende a página quando o entregador abre o Maps (limitação do ADR-08) |
+| Retenção | `python -m app.cli purge-locations` (padrão 30 dias, `LOCATION_RETENTION_DAYS`) | LGPD: localização é dado pessoal; agendado na fase 10 |
+| Transparência | Selo "Localização ativa" no topo e aviso na lista do entregador | O entregador sabe quando está sendo acompanhado |
+
