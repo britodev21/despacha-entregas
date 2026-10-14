@@ -7,6 +7,7 @@ import { ClientDetailPage } from "@/features/clients/ClientDetailPage";
 import { ClientsPage } from "@/features/clients/ClientsPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { OperationsPage } from "@/features/deliveries/OperationsPage";
+import { DelivererDeliveryPage } from "@/features/deliverer/DelivererDeliveryPage";
 import { DelivererHomePage } from "@/features/deliverer/DelivererHomePage";
 import { NotFoundPage } from "@/features/system/NotFoundPage";
 import { RouteErrorPage } from "@/features/system/RouteErrorPage";
@@ -68,7 +69,10 @@ export const router = createBrowserRouter([
                 <DelivererLayout />
               </RequirePermission>
             ),
-            children: [{ index: true, element: <DelivererHomePage /> }],
+            children: [
+              { index: true, element: <DelivererHomePage /> },
+              { path: "entregas/:deliveryId", element: <DelivererDeliveryPage /> },
+            ],
           },
         ],
       },

@@ -40,3 +40,31 @@ export function paymentSummary(delivery) {
   const label = PAYMENT_LABELS[delivery.payment_method];
   return delivery.change_for ? `${label} · troco p/ ${formatMoney(delivery.change_for)}` : label;
 }
+
+/** Link do Waze (alternativa ao Google Maps, muito usada por motoboys). */
+export function wazeUrl(delivery) {
+  if (delivery.lat && delivery.lng) {
+    return `https://waze.com/ul?ll=${delivery.lat},${delivery.lng}&navigate=yes`;
+  }
+  return `https://waze.com/ul?q=${encodeURIComponent(fullAddress(delivery))}&navigate=yes`;
+}
+
+/**
+ * O que o entregador precisa cobrar, em linguagem direta.
+ * Troco calculado em centavos inteiros (sem erro de ponto flutuante).
+ */
+export function collectInstructions(delivery) {
+  if (delivery.payment_method === "PREPAID")
+    return { tone: "success", text: "Já pago. Não cobrar." };
+  if (!delivery.order_amount) return null;
+  const amount = formatMoney(delivery.order_amount);
+  const method = delivery.payment_method ? PAYMENT_LABELS[delivery.payment_method] : null;
+  let text = method ? `Cobrar ${amount} · ${method}` : `Cobrar ${amount}`;
+  if (delivery.payment_method === "CASH" && delivery.change_for) {
+    const cents =
+      Math.round(Number(delivery.change_for) * 100) -
+      Math.round(Number(delivery.order_amount) * 100);
+    text += ` · troco para ${formatMoney(delivery.change_for)} (levar ${formatMoney(cents / 100)})`;
+  }
+  return { tone: "warning", text };
+}

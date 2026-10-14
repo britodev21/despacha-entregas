@@ -6,6 +6,7 @@ import {
   Navigation,
   Pencil,
   Phone,
+  TriangleAlert,
   UserMinus,
   UserRoundCheck,
 } from "lucide-react";
@@ -29,6 +30,9 @@ import { formatMoment } from "@/lib/time";
 import { useQuery } from "@/lib/useQuery";
 
 import { DELIVERY_STATUS } from "./deliveryStatus";
+import { FinishDeliveryDialog } from "./FinishDeliveryDialog";
+import { IssueDialog } from "./IssueDialog";
+import { OCCURRENCE_LABELS } from "./occurrences";
 import { isFinal, isLate, mapsUrl, paymentSummary, streetLine } from "./deliveryHelpers";
 import styles from "./deliveries.module.css";
 
@@ -85,6 +89,7 @@ export function DeliveryDrawer({ deliveryId, onClose, onChanged, onEdit }) {
   const [busy, setBusy] = useState(null); // nome da ação em andamento
   const [delivererId, setDelivererId] = useState("");
   const [canceling, setCanceling] = useState(false);
+  const [sheet, setSheet] = useState(null); // "finish" | "issue"
   const [reason, setReason] = useState("");
   const [reasonError, setReasonError] = useState(null);
 
@@ -207,10 +212,18 @@ export function DeliveryDrawer({ deliveryId, onClose, onChanged, onEdit }) {
                 {(status === "IN_ROUTE" || status === "ISSUE") && (
                   <Button
                     iconLeft={<CheckCheck aria-hidden="true" />}
-                    loading={busy === "complete"}
-                    onClick={() => act("complete", null, (d) => `Entrega #${d.number} entregue.`)}
+                    onClick={() => setSheet("finish")}
                   >
                     Marcar como entregue
+                  </Button>
+                )}
+                {status === "IN_ROUTE" && (
+                  <Button
+                    variant="secondary"
+                    iconLeft={<TriangleAlert aria-hidden="true" />}
+                    onClick={() => setSheet("issue")}
+                  >
+                    Registrar ocorrência
                   </Button>
                 )}
                 {status === "ASSIGNED" && (
@@ -313,6 +326,60 @@ export function DeliveryDrawer({ deliveryId, onClose, onChanged, onEdit }) {
             </section>
           )}
 
+          {delivery.occurrences.length > 0 && (
+            <section className={styles.block}>
+              <h3 className={styles.blockTitle}>Ocorrências</h3>
+              <ul className={styles.eventList}>
+                {delivery.occurrences.map((occurrence) => (
+                  <li key={occurrence.id} className={styles.eventItem}>
+                    <span className={styles.eventHeading}>
+                      {OCCURRENCE_LABELS[occurrence.type]}
+                      <time dateTime={occurrence.created_at} className={styles.muted}>
+                        {formatMoment(occurrence.created_at)}
+                      </time>
+                    </span>
+                    {occurrence.description && <span>{occurrence.description}</span>}
+                    {occurrence.reporter && (
+                      <span className={styles.muted}>
+                        Registrada por {occurrence.reporter.name}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {delivery.proof && (
+            <section className={styles.block}>
+              <h3 className={styles.blockTitle}>Comprovante</h3>
+              <dl className={styles.facts}>
+                <dt>Recebido por</dt>
+                <dd>{delivery.proof.received_by_name ?? "Não informado"}</dd>
+                {delivery.proof.notes && (
+                  <>
+                    <dt>Observação</dt>
+                    <dd>{delivery.proof.notes}</dd>
+                  </>
+                )}
+                <dt>Local</dt>
+                <dd>
+                  {delivery.proof.lat ? (
+                    <a
+                      href={`https://www.google.com/maps?q=${delivery.proof.lat},${delivery.proof.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Ver no mapa
+                    </a>
+                  ) : (
+                    "Sem localização"
+                  )}
+                </dd>
+              </dl>
+            </section>
+          )}
+
           {delivery.notes && (
             <section className={styles.block}>
               <h3 className={styles.blockTitle}>Observações</h3>
@@ -328,6 +395,32 @@ export function DeliveryDrawer({ deliveryId, onClose, onChanged, onEdit }) {
         </div>
       )}
 
+      {sheet === "finish" && delivery && (
+        <FinishDeliveryDialog
+          delivery={delivery}
+          basePath="/deliveries"
+          onClose={() => setSheet(null)}
+          onDone={(data) => {
+            setSheet(null);
+            toast.success(`Entrega #${data.number} entregue.`);
+            reload();
+            onChanged();
+          }}
+        />
+      )}
+      {sheet === "issue" && delivery && (
+        <IssueDialog
+          delivery={delivery}
+          basePath="/deliveries"
+          onClose={() => setSheet(null)}
+          onDone={(data) => {
+            setSheet(null);
+            toast.success(`Ocorrência registrada na entrega #${data.number}.`);
+            reload();
+            onChanged();
+          }}
+        />
+      )}
       {canceling && delivery && (
         <ConfirmDialog
           open
