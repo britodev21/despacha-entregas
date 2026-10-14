@@ -7,6 +7,7 @@ import { ClientDetailPage } from "@/features/clients/ClientDetailPage";
 import { ClientsPage } from "@/features/clients/ClientsPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { OperationsPage } from "@/features/deliveries/OperationsPage";
+import { HistoryPage } from "@/features/history/HistoryPage";
 import { DelivererDeliveryPage } from "@/features/deliverer/DelivererDeliveryPage";
 import { DelivererHomePage } from "@/features/deliverer/DelivererHomePage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
@@ -43,6 +44,14 @@ export const router = createBrowserRouter([
                 element: (
                   <RequirePermission permission={PERMISSIONS.DELIVERIES_MANAGE}>
                     <OperationsPage />
+                  </RequirePermission>
+                ),
+              },
+              {
+                path: "historico",
+                element: (
+                  <RequirePermission permission={PERMISSIONS.DELIVERIES_MANAGE}>
+                    <HistoryPage />
                   </RequirePermission>
                 ),
               },

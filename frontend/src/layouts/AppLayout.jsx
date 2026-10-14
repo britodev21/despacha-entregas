@@ -1,4 +1,14 @@
-import { Contact, LayoutDashboard, Map, Menu, Settings, Truck, UserCog, X } from "lucide-react";
+import {
+  Contact,
+  History,
+  LayoutDashboard,
+  Map,
+  Menu,
+  Settings,
+  Truck,
+  UserCog,
+  X,
+} from "lucide-react";
 import { useRef } from "react";
 import { NavLink, Outlet } from "react-router";
 
@@ -17,6 +27,12 @@ const NAV_ITEMS = [
   { to: "/painel", label: "Painel", Icon: LayoutDashboard, permission: PERMISSIONS.DASHBOARD_READ },
   { to: "/entregas", label: "Operação", Icon: Truck, permission: PERMISSIONS.DELIVERIES_MANAGE },
   { to: "/mapa", label: "Mapa", Icon: Map, permission: PERMISSIONS.TRACKING_READ },
+  {
+    to: "/historico",
+    label: "Histórico",
+    Icon: History,
+    permission: PERMISSIONS.DELIVERIES_MANAGE,
+  },
   { to: "/clientes", label: "Clientes", Icon: Contact, permission: PERMISSIONS.CLIENTS_MANAGE },
   { to: "/usuarios", label: "Usuários", Icon: UserCog, permission: PERMISSIONS.USERS_MANAGE },
   {

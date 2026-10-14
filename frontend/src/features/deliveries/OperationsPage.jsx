@@ -1,5 +1,6 @@
 import { Plus, RefreshCw } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router";
 
 import { api } from "@/api/client";
 import { Alert } from "@/components/ui/Alert/Alert";
@@ -41,8 +42,14 @@ const COLUMN_HINTS = {
 export function OperationsPage() {
   const toast = useToast();
   const now = useNow();
-  const [openId, setOpenId] = useState(null);
-  const [form, setForm] = useState(null); // { delivery? }
+  // Links diretos (ex.: do painel): /entregas?entrega=<id> abre o detalhe;
+  // /entregas?nova=1 abre o formulário de nova entrega.
+  const [params, setParams] = useSearchParams();
+  const [openId, setOpenId] = useState(() => params.get("entrega"));
+  const [form, setForm] = useState(() => (params.get("nova") ? {} : null)); // { delivery? }
+  useEffect(() => {
+    if (params.has("entrega") || params.has("nova")) setParams({}, { replace: true });
+  }, [params, setParams]);
 
   const { data, error, loading, reload } = useQuery(
     (signal) =>
