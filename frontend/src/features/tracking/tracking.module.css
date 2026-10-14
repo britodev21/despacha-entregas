@@ -1,0 +1,131 @@
+.layout {
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (min-width: 64rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+    align-items: start;
+  }
+}
+
+.mapWrap {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.map {
+  height: min(70dvh, 40rem);
+  min-height: 20rem;
+  width: 100%;
+  background-color: var(--color-surface-sunken);
+}
+
+/* Tema escuro: escurece os tiles do mapa claro (o mapa não "estoura" a tela). */
+:global([data-theme="dark"]) .tiles {
+  filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}
+
+.mapOverlay {
+  position: absolute;
+  inset: auto var(--space-4) var(--space-4) var(--space-4);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-raised);
+  box-shadow: var(--shadow-md);
+  font-size: var(--text-sm);
+}
+
+.mapOverlay > svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--color-text-subtle);
+}
+
+/* Marcador (divIcon): iniciais num círculo; borda branca para destacar do mapa. */
+.marker {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  color: #ffffff;
+  font: 700 12px/1 var(--font-sans);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
+}
+
+.route {
+  background-color: #5b21b6;
+}
+
+.issue {
+  background-color: #b91c1c;
+}
+
+.stale {
+  opacity: 0.5;
+}
+
+/* ---------- Lista ---------- */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  text-align: left;
+  font-size: var(--text-sm);
+}
+
+.item:hover:not(:disabled) {
+  border-color: var(--color-brand);
+}
+
+.item:disabled {
+  cursor: default;
+}
+
+.itemTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.itemName {
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+}
+
+.itemCounts,
+.itemDelivery {
+  color: var(--color-text-muted);
+}
+
+.itemSignal {
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+}
+
+.itemStale {
+  color: var(--color-on-warning-soft);
+  font-weight: var(--weight-semibold);
+}

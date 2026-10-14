@@ -282,3 +282,9 @@
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
 }
+
+.privacy {
+  margin-bottom: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+}

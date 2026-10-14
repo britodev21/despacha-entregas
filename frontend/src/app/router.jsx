@@ -12,8 +12,10 @@ import { DelivererHomePage } from "@/features/deliverer/DelivererHomePage";
 import { NotFoundPage } from "@/features/system/NotFoundPage";
 import { RouteErrorPage } from "@/features/system/RouteErrorPage";
 import { SystemStatusPage } from "@/features/system/SystemStatusPage";
+import { LazyTrackingPage } from "@/features/tracking/LazyTrackingPage";
 import { UsersPage } from "@/features/users/UsersPage";
 import { AppLayout } from "@/layouts/AppLayout";
+
 import { DelivererLayout } from "@/layouts/DelivererLayout";
 
 export const router = createBrowserRouter([
@@ -40,6 +42,14 @@ export const router = createBrowserRouter([
                 element: (
                   <RequirePermission permission={PERMISSIONS.DELIVERIES_MANAGE}>
                     <OperationsPage />
+                  </RequirePermission>
+                ),
+              },
+              {
+                path: "mapa",
+                element: (
+                  <RequirePermission permission={PERMISSIONS.TRACKING_READ}>
+                    <LazyTrackingPage />
                   </RequirePermission>
                 ),
               },

@@ -30,6 +30,7 @@ import { DELIVERY_STATUS } from "@/features/deliveries/deliveryStatus";
 import { FinishDeliveryDialog } from "@/features/deliveries/FinishDeliveryDialog";
 import { IssueDialog } from "@/features/deliveries/IssueDialog";
 import { OCCURRENCE_LABELS } from "@/features/deliveries/occurrences";
+import { useTracking } from "@/features/tracking/TrackingContext";
 import { formatZip } from "@/lib/format";
 import { formatPhone } from "@/lib/phone";
 import { formatMoment } from "@/lib/time";
@@ -47,6 +48,7 @@ export function DelivererDeliveryPage() {
   const { deliveryId } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const tracking = useTracking();
   const {
     data: delivery,
     error,
@@ -92,6 +94,7 @@ export function DelivererDeliveryPage() {
     setStarting(true);
     try {
       await api.post(`${BASE}/${delivery.id}/start`);
+      tracking.refresh(); // em rota: liga o compartilhamento de localização já
       toast.success(
         delivery.status === "ISSUE" ? "Entrega retomada." : "Boa entrega! Status: em rota.",
       );
@@ -264,6 +267,7 @@ export function DelivererDeliveryPage() {
           onClose={() => setDialog(null)}
           onDone={(data) => {
             setDialog(null);
+            tracking.refresh();
             toast.success(`Entrega #${data.number} finalizada!`);
             navigate("/entregador");
           }}

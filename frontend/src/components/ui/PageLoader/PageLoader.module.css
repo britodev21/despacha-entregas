@@ -1,0 +1,6 @@
+.loader {
+  display: grid;
+  place-items: center;
+  min-height: 16rem;
+  color: var(--color-brand);
+}

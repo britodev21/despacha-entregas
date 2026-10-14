@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/EmptyState/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton/Skeleton";
 import { collectInstructions, streetLine } from "@/features/deliveries/deliveryHelpers";
 import { DELIVERY_STATUS } from "@/features/deliveries/deliveryStatus";
+import { useTracking } from "@/features/tracking/TrackingContext";
 import { cx } from "@/lib/cx";
 import { formatElapsed, formatMoment } from "@/lib/time";
 import { usePolling, useNow } from "@/lib/usePolling";
@@ -66,6 +67,7 @@ function DeliveryRow({ delivery, now, highlight }) {
  */
 export function DelivererHomePage() {
   const now = useNow();
+  const { status: trackingStatus } = useTracking();
   const [params, setParams] = useSearchParams();
   const scope = params.get("aba") === "historico" ? "history" : "active";
 
@@ -105,6 +107,17 @@ export function DelivererHomePage() {
       </div>
 
       {error && <Alert tone="danger">{error.message}</Alert>}
+      {trackingStatus === "active" && scope === "active" && (
+        <p className={styles.privacy}>
+          Sua localização é compartilhada com o operador só enquanto há entrega em rota.
+        </p>
+      )}
+      {trackingStatus === "denied" && (
+        <Alert tone="warning" title="Localização bloqueada">
+          Permita a localização para este site nas configurações do navegador. Sem ela, o operador
+          não acompanha sua rota no mapa.
+        </Alert>
+      )}
 
       {!data && loading ? (
         <div className={styles.list}>
