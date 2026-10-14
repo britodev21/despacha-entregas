@@ -34,6 +34,7 @@ class AuditAction(StrEnum):
     DELIVERY_ISSUE_REPORTED = "delivery.issue_reported"
     DELIVERY_FILE_UPLOADED = "delivery.file_uploaded"
     SETTINGS_UPDATED = "settings.updated"
+    DELIVERIES_EXPORTED = "deliveries.exported"
 
 
 class AuditLog(Base):

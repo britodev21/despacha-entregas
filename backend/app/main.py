@@ -11,6 +11,7 @@ from app.modules.companies.router import router as company_router
 from app.modules.deliveries.router import deliverers_router, files_router, me_router
 from app.modules.deliveries.router import router as deliveries_router
 from app.modules.health.router import router as health_router
+from app.modules.reports.router import router as reports_router
 from app.modules.tracking.router import me_router as tracking_me_router
 from app.modules.tracking.router import router as tracking_router
 from app.modules.users.router import router as users_router
@@ -58,6 +59,7 @@ def create_app() -> FastAPI:
     api.include_router(tracking_me_router)
     api.include_router(files_router)
     api.include_router(company_router)
+    api.include_router(reports_router)
     app.include_router(api)
 
     return app

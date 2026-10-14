@@ -3,12 +3,14 @@ from datetime import date
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from sqlalchemy.orm import Session
 
 from app.core import storage
 from app.core.db import get_db
 from app.core.permissions import Permission
+from app.modules.audit import service as audit
+from app.modules.audit.models import AuditAction
 from app.modules.auth.dependencies import CurrentUser, require_permission
 from app.modules.deliveries import service
 from app.modules.deliveries.models import Delivery, DeliveryFile, FileKind
@@ -25,6 +27,7 @@ from app.modules.deliveries.schemas import (
     IssueIn,
 )
 from app.modules.deliveries.state_machine import DeliveryStatus
+from app.modules.reports import service as reports
 from app.modules.users.models import User
 
 router = APIRouter(prefix="/deliveries", tags=["deliveries"])
@@ -67,6 +70,56 @@ def list_deliveries(
         total=total,
         limit=limit,
         offset=offset,
+    )
+
+
+@router.get("/export.csv", response_class=Response)
+def export_deliveries(
+    user: Manager,
+    db: DB,
+    status_: Annotated[list[DeliveryStatus] | None, Query(alias="status")] = None,
+    deliverer_id: uuid.UUID | None = None,
+    created_from: date | None = None,
+    created_to: date | None = None,
+    search: Annotated[str | None, Query(max_length=100)] = None,
+) -> Response:
+    """Mesmos filtros do histórico, em CSV (até 10 mil linhas). Fica auditado:
+    exportar dados pessoais em massa é ação sensível."""
+    items, total = service.list_deliveries(
+        db,
+        user.company,
+        statuses=status_,
+        deliverer_id=deliverer_id,
+        created_from=created_from,
+        created_to=created_to,
+        search=search.strip() if search else None,
+        limit=reports.EXPORT_LIMIT,
+        offset=0,
+    )
+    audit.record(
+        db,
+        AuditAction.DELIVERIES_EXPORTED,
+        company_id=user.company_id,
+        user_id=user.id,
+        resource_type="delivery",
+        details={
+            "rows": len(items),
+            "total": total,
+            "filters": {
+                "status": status_,
+                "deliverer_id": str(deliverer_id) if deliverer_id else None,
+                "created_from": str(created_from) if created_from else None,
+                "created_to": str(created_to) if created_to else None,
+                "search": bool(search),
+            },
+        },
+    )
+    db.commit()
+    filename = reports.export_filename(user.company_id, reports.local_today(user.company))
+    return Response(
+        content=reports.export_csv(items, user.company),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 
