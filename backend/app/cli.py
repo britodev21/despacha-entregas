@@ -106,6 +106,16 @@ def _seed_dev(_: argparse.Namespace) -> None:
     print("Senha de todos: valor de DEV_SEED_PASSWORD no .env")
 
 
+def _purge_locations(args: argparse.Namespace) -> None:
+    """Apaga posições antigas (LGPD). Agendado diariamente em produção (fase 10)."""
+    from app.modules.tracking.service import purge_old_locations
+
+    days = args.days or get_settings().location_retention_days
+    with SessionLocal() as db:
+        deleted = purge_old_locations(db, days)
+    print(f"Posições com mais de {days} dias apagadas: {deleted}")
+
+
 class _SystemActor:
     """Ator usado pela CLI: auditoria registra user_id vazio (ação de sistema)."""
 
@@ -131,6 +141,10 @@ def main(argv: list[str] | None = None) -> int:
     cmd.add_argument("--role", required=True, choices=[r.value for r in Role])
     cmd.add_argument("--password-stdin", action="store_true", help="Lê a senha da entrada padrão")
     cmd.set_defaults(handler=_create_user)
+
+    cmd = commands.add_parser("purge-locations", help="Apaga posições antigas dos entregadores")
+    cmd.add_argument("--days", type=int, help="Padrão: LOCATION_RETENTION_DAYS (30)")
+    cmd.set_defaults(handler=_purge_locations)
 
     cmd = commands.add_parser("seed-dev", help="Cria dados de demonstração (só desenvolvimento)")
     cmd.set_defaults(handler=_seed_dev)

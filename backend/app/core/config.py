@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     # Limite por IP (por processo; o Nginx aplica outro limite global em produção).
     login_rate_limit_per_minute: int = Field(default=10, ge=1)
 
+    # Rastreamento (fase 6): por quantos dias guardar as posições dos entregadores.
+    # Localização é dado pessoal (LGPD): guardar só o necessário.
+    location_retention_days: int = Field(default=30, ge=1, le=365)
+
     # Senha dos usuários de demonstração criados por `python -m app.cli seed-dev`.
     # Só em desenvolvimento; o comando se recusa a rodar em produção.
     dev_seed_password: SecretStr | None = None

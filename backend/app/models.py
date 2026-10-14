@@ -9,7 +9,8 @@ from app.modules.audit.models import AuditLog
 from app.modules.auth.models import RefreshToken
 from app.modules.clients.models import Client, ClientAddress
 from app.modules.companies.models import Company
-from app.modules.deliveries.models import Delivery
+from app.modules.deliveries.models import Delivery, DeliveryOccurrence, DeliveryProof
+from app.modules.tracking.models import DelivererLocation
 from app.modules.users.models import User
 
 __all__ = [
@@ -18,7 +19,10 @@ __all__ = [
     "Client",
     "ClientAddress",
     "Company",
+    "DelivererLocation",
     "Delivery",
+    "DeliveryOccurrence",
+    "DeliveryProof",
     "RefreshToken",
     "User",
 ]
