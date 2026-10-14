@@ -159,6 +159,22 @@ def reset_password(db: Session, actor: User, user_id: uuid.UUID, new_password: s
     db.commit()
 
 
+def revoke_sessions(db: Session, actor: User, user_id: uuid.UUID) -> None:
+    """Admin encerra todas as sessões de alguém (ex.: celular perdido)."""
+    user = get_user(db, actor.company_id, user_id)
+    revoke_user_sessions(db, user.id)
+    user.sessions_revoked_at = datetime.now(UTC)
+    audit.record(
+        db,
+        AuditAction.USER_SESSIONS_REVOKED,
+        company_id=actor.company_id,
+        user_id=actor.id,
+        resource_type=RESOURCE,
+        resource_id=user.id,
+    )
+    db.commit()
+
+
 def _ensure_unique(
     db: Session,
     *,

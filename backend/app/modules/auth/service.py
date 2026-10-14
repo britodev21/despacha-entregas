@@ -7,7 +7,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -218,6 +218,27 @@ def revoke_user_sessions(
     if keep_family is not None:
         stmt = stmt.where(RefreshToken.family_id != keep_family)
     db.execute(stmt.values(revoked_at=_now()))
+
+
+def end_all_sessions(db: Session, user: User) -> None:
+    """Sair de todos os dispositivos: revoga os refresh tokens E invalida os
+    access tokens já emitidos (celular perdido ou roubado)."""
+    revoke_user_sessions(db, user.id)
+    user.sessions_revoked_at = _now()
+    audit.record(db, AuditAction.AUTH_LOGOUT_ALL, company_id=user.company_id, user_id=user.id)
+    db.commit()
+
+
+def purge_expired_sessions(db: Session, older_than_days: int = 7) -> int:
+    """Remove refresh tokens vencidos ou revogados há mais de N dias."""
+    cutoff = _now() - timedelta(days=older_than_days)
+    result = db.execute(
+        delete(RefreshToken).where(
+            (RefreshToken.expires_at < cutoff) | (RefreshToken.revoked_at < cutoff)
+        )
+    )
+    db.commit()
+    return result.rowcount or 0
 
 
 # ---------------------------------------------------------------- senha

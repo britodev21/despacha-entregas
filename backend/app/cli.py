@@ -116,6 +116,15 @@ def _purge_locations(args: argparse.Namespace) -> None:
     print(f"Posições com mais de {days} dias apagadas: {deleted}")
 
 
+def _purge_sessions(args: argparse.Namespace) -> None:
+    """Remove sessões vencidas/revogadas antigas. Agendado diariamente (fase 10)."""
+    from app.modules.auth.service import purge_expired_sessions
+
+    with SessionLocal() as db:
+        deleted = purge_expired_sessions(db, args.days)
+    print(f"Sessões antigas removidas: {deleted}")
+
+
 class _SystemActor:
     """Ator usado pela CLI: auditoria registra user_id vazio (ação de sistema)."""
 
@@ -145,6 +154,10 @@ def main(argv: list[str] | None = None) -> int:
     cmd = commands.add_parser("purge-locations", help="Apaga posições antigas dos entregadores")
     cmd.add_argument("--days", type=int, help="Padrão: LOCATION_RETENTION_DAYS (30)")
     cmd.set_defaults(handler=_purge_locations)
+
+    cmd = commands.add_parser("purge-sessions", help="Remove sessões vencidas/revogadas antigas")
+    cmd.add_argument("--days", type=int, default=7)
+    cmd.set_defaults(handler=_purge_sessions)
 
     cmd = commands.add_parser("seed-dev", help="Cria dados de demonstração (só desenvolvimento)")
     cmd.set_defaults(handler=_seed_dev)

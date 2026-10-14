@@ -49,8 +49,12 @@ def get_current_user(
     user = db.get(User, user_id)
     if user is None or not user.is_active or not user.company.is_active:
         raise TokenInvalidError()
-    # Token emitido antes da última troca de senha não vale mais.
-    if payload["iat"] < int(user.password_changed_at.timestamp()):
+    # Token emitido antes da última troca de senha ou do "encerrar sessões"
+    # não vale mais (sem esperar os 15 min de validade do access token).
+    cutoff = user.password_changed_at
+    if user.sessions_revoked_at and user.sessions_revoked_at > cutoff:
+        cutoff = user.sessions_revoked_at
+    if payload["iat"] < cutoff.timestamp():
         raise TokenInvalidError()
     return user
 

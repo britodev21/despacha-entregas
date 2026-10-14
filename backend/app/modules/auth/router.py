@@ -93,6 +93,18 @@ def logout(request: Request, db: DB) -> Response:
     return response
 
 
+@router.post(
+    "/logout-all",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(verify_origin)],
+)
+def logout_all(user: CurrentUser, db: DB) -> Response:
+    service.end_all_sessions(db, user)
+    response = Response(status_code=status.HTTP_204_NO_CONTENT)
+    _clear_refresh_cookie(response)
+    return response
+
+
 @router.get("/me", response_model=MeOut)
 def me(user: CurrentUser) -> MeOut:
     return MeOut.from_user(user)

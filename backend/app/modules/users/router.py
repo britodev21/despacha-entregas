@@ -59,3 +59,8 @@ def update_user(user_id: uuid.UUID, body: UserUpdate, admin: Admin, db: DB) -> U
 @router.post("/{user_id}/reset-password", status_code=status.HTTP_204_NO_CONTENT)
 def reset_password(user_id: uuid.UUID, body: PasswordResetIn, admin: Admin, db: DB) -> None:
     service.reset_password(db, admin, user_id, body.new_password)
+
+
+@router.post("/{user_id}/revoke-sessions", status_code=status.HTTP_204_NO_CONTENT)
+def revoke_sessions(user_id: uuid.UUID, admin: Admin, db: DB) -> None:
+    service.revoke_sessions(db, admin, user_id)

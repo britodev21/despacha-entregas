@@ -5,6 +5,7 @@ from app.core.config import get_settings
 from app.core.errors import register_exception_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import RequestContextMiddleware
+from app.modules.audit.router import router as audit_router
 from app.modules.auth.router import router as auth_router
 from app.modules.clients.router import router as clients_router
 from app.modules.companies.router import router as company_router
@@ -60,6 +61,7 @@ def create_app() -> FastAPI:
     api.include_router(files_router)
     api.include_router(company_router)
     api.include_router(reports_router)
+    api.include_router(audit_router)
     app.include_router(api)
 
     return app

@@ -15,6 +15,7 @@ class AuditAction(StrEnum):
     AUTH_LOGIN_BLOCKED = "auth.login_blocked"
     AUTH_ACCOUNT_LOCKED = "auth.account_locked"
     AUTH_LOGOUT = "auth.logout"
+    AUTH_LOGOUT_ALL = "auth.logout_all"
     AUTH_REFRESH_REUSE_DETECTED = "auth.refresh_reuse_detected"
     AUTH_PASSWORD_CHANGED = "auth.password_changed"  # noqa: S105 (nome de ação, não senha)
     USER_CREATED = "user.created"
@@ -22,6 +23,7 @@ class AuditAction(StrEnum):
     USER_ROLE_CHANGED = "user.role_changed"
     USER_DEACTIVATED = "user.deactivated"
     USER_ACTIVATED = "user.activated"
+    USER_SESSIONS_REVOKED = "user.sessions_revoked"
     USER_PASSWORD_RESET = "user.password_reset"  # noqa: S105 (nome de ação, não senha)
     CLIENT_CREATED = "client.created"
     CLIENT_UPDATED = "client.updated"

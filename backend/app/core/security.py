@@ -67,7 +67,9 @@ def create_access_token(*, user_id: uuid.UUID, company_id: uuid.UUID, role: str)
         "typ": "access",
         "iss": JWT_ISSUER,
         "aud": JWT_AUDIENCE,
-        "iat": now,
+        # Com fração de segundo (RFC 7519 permite): revogação no mesmo segundo
+        # da emissão ainda é comparada corretamente.
+        "iat": now.timestamp(),
         "exp": now + lifetime,
         "jti": uuid.uuid4().hex,
     }

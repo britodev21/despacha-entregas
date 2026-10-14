@@ -8,7 +8,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import Field, SecretStr, field_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -56,6 +56,17 @@ class Settings(BaseSettings):
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
+
+    @model_validator(mode="after")
+    def _production_safety(self) -> Settings:
+        """Recusa subir em produção com configuração perigosa."""
+        if self.app_env == "production":
+            insecure = [o for o in self.cors_origins if not o.startswith("https://")]
+            if insecure:
+                raise ValueError(f"Em produção, CORS_ORIGINS deve usar https: {insecure}")
+            if self.dev_seed_password is not None:
+                raise ValueError("DEV_SEED_PASSWORD não deve existir em produção.")
+        return self
 
     @property
     def is_production(self) -> bool:

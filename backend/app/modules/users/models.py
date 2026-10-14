@@ -42,6 +42,8 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     password_changed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+    # "Sair de todos os dispositivos" / admin encerrou as sessões: idem.
+    sessions_revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     # lazy="joined": carrega a empresa na mesma query (precisamos de
     # company.is_active em toda requisição autenticada).
