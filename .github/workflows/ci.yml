@@ -128,3 +128,73 @@ jobs:
       - name: Vulnerabilidades conhecidas (npm)
         working-directory: frontend
         run: npm audit --audit-level=high
+
+  # Sobe a stack de produção (docker-compose.yml) e testa de ponta a ponta,
+  # passando pelo Nginx da tela como o Traefik faria.
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Configuração de teste (segredos gerados na hora)
+        run: |
+          {
+            echo "DOMINIO=localhost"
+            echo "POSTGRES_PASSWORD=$(openssl rand -hex 24)"
+            echo "DESPACHA_OWNER_PASSWORD=$(openssl rand -hex 24)"
+            echo "DESPACHA_APP_PASSWORD=$(openssl rand -hex 24)"
+            echo "JWT_SECRET=$(openssl rand -hex 32)"
+          } > .env
+
+      - name: Build e subida
+        run: docker compose -f docker-compose.yml -f deploy/docker/compose.ci.yml up -d --build
+
+      - name: Teste de ponta a ponta
+        run: |
+          set -euo pipefail
+          base=http://localhost:8080
+          for _ in $(seq 1 60); do
+            curl -fsS "$base/api/v1/health" 2>/dev/null | grep -q '"status":"ok"' && break
+            sleep 2
+          done
+          curl -fsS "$base/api/v1/health" | grep -q '"status":"ok"'
+
+          echo "headers de segurança"
+          headers="$(curl -fsSI "$base/")"
+          echo "$headers" | grep -qi '^content-security-policy:.*default-src'
+          echo "$headers" | grep -qi '^x-frame-options: DENY'
+          echo "$headers" | grep -qi '^strict-transport-security:'
+
+          echo "SPA, docs bloqueados e rota protegida"
+          curl -fsS "$base/painel" | grep -q 'id="root"'
+          test "$(curl -s -o /dev/null -w '%{http_code}' "$base/api/docs")" = 404
+          test "$(curl -s -o /dev/null -w '%{http_code}' "$base/api/v1/deliveries")" = 401
+
+          echo "login pela tela (empresa e admin criados pela CLI)"
+          cid="$(docker compose exec -T api python -m app.cli create-company --name CI | sed -E 's/.*\(([0-9a-f-]+)\).*/\1/')"
+          pw="$(openssl rand -hex 16)"
+          printf '%s\n' "$pw" | docker compose exec -T api python -m app.cli create-user \
+            --company-id "$cid" --name "Admin CI" --email admin@ci.example.com --role ADMIN --password-stdin
+          code="$(curl -s -o "$RUNNER_TEMP/login.json" -w '%{http_code}' \
+            -H 'Content-Type: application/json' -H "Origin: $base" \
+            -d "{\"identifier\":\"admin@ci.example.com\",\"password\":\"$pw\"}" "$base/api/v1/auth/login")"
+          test "$code" = 200
+          grep -q access_token "$RUNNER_TEMP/login.json"
+
+          echo "isolamento da API"
+          # (com set -e, "! comando" nunca derruba o script: por isso os if)
+          if docker compose exec -T api env | grep -q MIGRATIONS_DATABASE_URL; then
+            echo "a API recebeu a credencial do dono do schema"; exit 1
+          fi
+          test "$(docker compose exec -T api id -u)" != 0
+          if docker compose exec -T api touch /app/gravacao-proibida 2>/dev/null; then
+            echo "o disco da API deveria ser somente leitura"; exit 1
+          fi
+          echo "OK"
+
+      - name: Logs (em caso de falha)
+        if: failure()
+        run: docker compose logs --tail 200

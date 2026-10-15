@@ -1,0 +1,8 @@
+# Só o que a imagem precisa; segredos e lixo local nunca entram no build.
+.env
+.env.*
+node_modules/
+dist/
+coverage/
+.vite/
+Dockerfile

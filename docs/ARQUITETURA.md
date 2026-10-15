@@ -758,26 +758,34 @@ Cada fase termina com commit próprio.
 
 ## 20. Decisões de implementação — Fase 10 (Produção)
 
-Tudo versionado em [`deploy/`](../deploy/), com placeholders. O runbook é o
-[deploy/README.md](../deploy/README.md).
+Tudo versionado na raiz (`docker-compose.yml`, `.env.example`), em
+`backend/Dockerfile`, `frontend/Dockerfile` + `frontend/nginx.conf` e em
+[`deploy/`](../deploy/). O runbook é o [deploy/README.md](../deploy/README.md).
+
+> **Revisão:** a primeira versão da fase 10 previa Nginx e systemd direto no
+> host. O servidor real já roda **Docker + Traefik**, compartilhado com outros
+> sistemas, e o Traefik ocupa as portas 80/443. Instalar outro Nginx ali
+> derrubaria os outros sites. O deploy virou Docker Compose atrás do Traefik,
+> mantendo as mesmas proteções. A versão anterior continua no histórico do git.
 
 | Tema | Decisão | Por quê | Alternativa descartada |
 |---|---|---|---|
-| Hospedagem | Um VPS: Nginx + Uvicorn (systemd) + PostgreSQL local | Custo e operação compatíveis com um pequeno negócio; poucas peças móveis | Kubernetes/PaaS: complexidade e custo sem ganho nesse porte |
-| Containers | Sem Docker no servidor | systemd já dá isolamento (sandbox), reinício e logs; um processo a menos para manter | Docker Compose: válido, mas acrescenta camada de rede/volumes e atualização de imagens |
-| Processo da API | Uvicorn com 2 workers, só em `127.0.0.1`, sandbox do systemd (`ProtectSystem=strict`, sem capabilities) | Se a API for invadida, o estrago fica contido: não grava no disco além dos uploads | Gunicorn + workers Uvicorn: sem ganho real para este porte |
-| Credenciais do banco | `backend.env` (API, só `despacha_app`) separado de `migrations.env` (dono do schema) | A API em execução nunca tem permissão para alterar tabelas nem a auditoria | Um arquivo só: a credencial de DDL ficaria no ambiente do processo exposto |
-| Arquivos de ambiente | Lidos pelo systemd (`EnvironmentFile`), inclusive nas migrations e na CLI via `systemd-run` | Um único parser, sem `source` no shell (valores com `&`, `$` etc. não quebram nem executam) | `source` no shell: frágil e arriscado |
-| Scripts de operação | Instalados em `/usr/local/sbin` (dono root) após revisão; o deploy avisa quando mudam | O checkout pertence ao usuário da aplicação: se o root executasse dali, uma dependência maliciosa no build viraria root | Executar direto do repositório |
-| Build do frontend | `npm ci --ignore-scripts` no servidor, como usuário sem privilégios; saída copiada para uma pasta de release do root | Nenhum pacote executa código na instalação; nenhuma dependência do projeto precisa disso no Linux | Build no CI com envio de artefato: melhor no futuro, mas exige credencial de deploy |
-| Frontend | Releases com data e commit + link simbólico `current` trocado de forma atômica | Deploy sem tela quebrada pela metade; rollback instantâneo | Sobrescrever a pasta: janela de arquivos misturados |
-| Migrations | Rodam antes do reinício, com a regra *expand → contract* | Deploy sem janela de manutenção | Parar a API durante o deploy |
-| HTTPS | Let's Encrypt com renovação via webroot; TLS 1.2/1.3 declarado no próprio site | Renova sem derrubar o Nginx; não depende de arquivos gerados pelo plugin do certbot | `certbot --nginx`: edita a configuração versionada |
+| Hospedagem | Docker Compose num VPS que já tem Traefik (compartilhado) | Segue o padrão do servidor; cada sistema isolado no seu compose; HTTPS automático | Nginx/systemd no host: conflita com o Traefik nas portas 80/443 |
+| Entrada | Traefik → `web` (Nginx :8080) → `api`; nenhuma porta publicada | Só o Traefik recebe a internet; API e banco inalcançáveis de fora | Traefik direto na API: perderíamos CSP, rate limit e o fallback da SPA num lugar só |
+| Redes | `despacha-interna` (`internal: true`: db, migrate, api) e `despacha-borda` (web, api) | O banco não tem saída para a internet; a tela não alcança o banco | Uma rede só: a tela conseguiria falar com o banco |
+| Credenciais do banco | Contêiner `migrate` (único com a senha do dono do schema) roda e termina; a API só recebe `despacha_app` | A API em execução nunca pode alterar tabelas nem a auditoria | Migrations no start da API: a API precisaria da credencial de DDL |
+| Usuários do banco | `deploy/docker/db-init.sh` reaproveita o `setup_db.sql` do desenvolvimento na criação do volume | Mesmas regras em dev e produção; senhas entram pelo stdin do psql | Superusuário na aplicação |
+| Endurecimento | `read_only`, `cap_drop: ALL`, `no-new-privileges`, usuário sem root, `tmpfs` em `/tmp`, limites de memória | Se um contêiner for invadido, o estrago fica contido | Defaults do Docker (root, disco gravável) |
+| IP real | Traefik → `X-Forwarded-For`; o Nginx usa `real_ip` só de faixas privadas e sem recursão (vale o IP que o Traefik acrescentou) | Rate limit e auditoria com o IP do cliente, sem aceitar IP inventado | Confiar no header de qualquer origem: IP forjável |
+| Build | Imagens multi-stage; `npm ci --ignore-scripts`; `uv sync --frozen`; `.dockerignore` sem `.env` | Builds reproduzíveis; nenhum pacote executa código na instalação; segredos fora das imagens | Build no host |
+| Configuração | `.env` na raiz do servidor (600), lido só pelo compose; cada serviço recebe apenas as variáveis de que precisa | Menor privilégio por contêiner | `env_file` compartilhado: todos veriam todas as senhas |
+| Logs | `json-file` com `max-size` 10 MB e 3 arquivos | Disco não enche; retenção curta de IPs (LGPD) | Padrão do Docker, sem limite |
 | Headers | CSP estrita (`style-src 'self'`), HSTS, `Permissions-Policy` restrita, repetidos onde há `add_header` local | Defesa em profundidade contra XSS, clickjacking e vazamento de referer | `'unsafe-inline'` em estilos: desnecessário (o Leaflet usa CSSOM) |
+| Tiles do mapa | Camada de tiles com `referrerPolicy` próprio (envia só a origem) | O OSM exige Referer; o resto da página continua com `no-referrer` | Afrouxar o `Referrer-Policy` da página inteira |
 | Rate limit | Nginx por IP (auth 10/min; API 20/s) + limite em memória da app | O limite da app é por processo; o do Nginx é global | Redis: mais uma peça para operar |
-| Backup | `pg_dump -Fc` + tar dos uploads, cifrado com `age` para 2 chaves (dono offline + servidor), cópia externa com `rclone` | Recupera tudo mesmo com o servidor perdido; o provedor externo só vê dados cifrados | Snapshot do provedor: útil como extra, mas preso ao provedor e sem garantia de consistência do banco |
-| Teste de restauração | Mensal e automático: restaura num banco temporário, confere migrations e contagens, apaga | Backup que nunca foi restaurado não é confiável | Teste manual "quando lembrar" |
-| Manutenção | Timers diários de `purge-locations` (LGPD) e `purge-sessions` | Retenção mínima de dados pessoais sem depender de alguém lembrar | Cron: timers têm `Persistent=` (rodam se o servidor estava desligado) e logs no journal |
-| Monitoramento | Monitor externo em `/api/v1/health` + pings dos timers (backup, restauração) | Alerta quando algo para, inclusive quando o servidor inteiro cai | Stack de observabilidade completa: desproporcional ao porte |
-| CI | GitHub Actions: ruff, pytest com PostgreSQL real, oxlint, Prettier, Vitest, build, `pip-audit`, `npm audit` | Nada quebrado ou vulnerável chega à `main` sem aviso; sem segredos (senhas geradas no job) | Testes só locais |
-
+| Deploy | `deploy.sh`: backup → `git pull` → build → `up -d` (`migrate` antes da API) → health | Se a migration falha, a API antiga continua no ar | Parar tudo durante o deploy |
+| Bundle | Telas carregadas sob demanda (`React.lazy`) + recarga automática quando um arquivo do deploy anterior some | Entregador não baixa o painel (pacote inicial −33%); abas antigas não quebram após deploy | Pacote único |
+| Backup | `pg_dump -Fc` + tar do volume de uploads, cifrado com `age` para 2 chaves (dono offline + servidor); `rclone` opcional | Recupera tudo mesmo com o servidor perdido; o provedor externo só vê dados cifrados | Backup só do banco: perderia fotos e assinaturas |
+| Teste de restauração | Mensal: PostgreSQL temporário **sem rede**, restaura, confere migrations e contagens, apaga | Backup que nunca foi restaurado não é confiável; a produção não é tocada | Teste manual "quando lembrar" |
+| Manutenção | Timers do systemd no host chamando a CLI no contêiner (`purge-locations`, `purge-sessions`) | Retenção mínima de dados pessoais; `Persistent=` cobre servidor desligado | Cron: sem `Persistent` nem logs no journal |
+| CI | GitHub Actions: lint, testes, auditoria de dependências e um job que sobe o `docker-compose.yml` e testa de ponta a ponta (headers, login, isolamento da API) | A configuração de produção é testada a cada push, sem precisar de Docker local | Descobrir erro de imagem só no servidor |

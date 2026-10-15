@@ -151,54 +151,53 @@ npm test
 
 ## 5. Produção (fase 10)
 
-As pendências levantadas nesta revisão viraram configuração versionada em
-[`deploy/`](../deploy/). Aplicar no servidor segue o runbook
-([deploy/README.md](../deploy/README.md)), que termina com um checklist de
-verificação.
+As pendências levantadas nesta revisão viraram configuração versionada:
+`docker-compose.yml`, `backend/Dockerfile`, `frontend/Dockerfile`,
+`frontend/nginx.conf` e [`deploy/`](../deploy/). Aplicar no servidor segue o
+runbook ([deploy/README.md](../deploy/README.md)), que termina com um
+checklist. O job `docker` do CI sobe essa stack e verifica parte disso a cada
+push.
 
-- [x] **CSP no Nginx**: `default-src 'self'`; `script-src 'self'`;
+- [x] **HTTPS**: o Traefik do servidor emite e renova os certificados (Let's
+  Encrypt) e redireciona HTTP para HTTPS.
+- [x] **CSP no Nginx** da tela: `default-src 'self'`; `script-src 'self'`;
   `style-src 'self'`, sem `'unsafe-inline'`, porque o Leaflet aplica estilos via
-  CSSOM (permitido pela CSP) e o frontend não usa atributos `style` em HTML cru;
+  CSSOM e o frontend não usa atributos `style` em HTML cru;
   `img-src 'self' data: blob: <provedor de tiles>`;
   `connect-src 'self' https://viacep.com.br`; `frame-ancestors 'none'`;
   `base-uri 'none'`; `form-action 'self'`; `object-src 'none'`.
 - [x] **HSTS**, `Permissions-Policy` (geolocalização e câmera só da própria
   origem), `X-Content-Type-Options`, `X-Frame-Options` e `Referrer-Policy`,
-  repetidos nos `location` que definem headers próprios. No Nginx, um
-  `add_header` dentro de um `location` anula os herdados.
-- [x] **TLS**: só 1.2/1.3, cifras com *forward secrecy*, certificado Let's
-  Encrypt renovado via webroot, sem derrubar o site.
+  repetidos nos `location` que definem headers próprios.
 - [x] **Nginx**: `limit_req` em `/api/v1/auth/` (10/min por IP) e no restante
-  da API, `client_max_body_size 10m`, `/api/docs` bloqueado, `server_tokens off`
-  e arquivos ocultos negados.
-- [x] **Uvicorn**: `--proxy-headers --forwarded-allow-ips 127.0.0.1
-  --no-server-header`, escutando só em `127.0.0.1`.
-- [x] **systemd**: a API roda como usuário sem privilégios, com disco somente
-  leitura, sem capabilities e com gravação só na pasta de uploads.
-- [x] **PostgreSQL** só em `localhost`. A API recebe apenas a credencial
-  `despacha_app`; a do dono do schema fica num arquivo separado
-  (`migrations.env`), usado só durante as migrations.
-- [x] **Servidor**: firewall com 22/80/443, SSH só com chave e sem root,
-  fail2ban, atualizações automáticas e journald com limite de retenção.
+  da API, `client_max_body_size 10m`, `/api/docs` bloqueado, `server_tokens off`,
+  arquivos ocultos negados e IP real aceito só das faixas privadas (Traefik).
+- [x] **Exposição**: nenhuma porta publicada. O banco fica numa rede
+  `internal` sem saída para a internet.
+- [x] **Contêineres** sem root, com disco somente leitura, `cap_drop: ALL`,
+  `no-new-privileges`, limites de memória e logs com limite de tamanho.
+- [x] **PostgreSQL**: a API recebe apenas `despacha_app`. A credencial do dono
+  do schema só existe no contêiner `migrate`, que roda as migrations e
+  termina (verificado no CI).
+- [x] **Build**: `.dockerignore` mantém `.env` fora das imagens, e
+  `npm ci --ignore-scripts` impede que dependências executem código.
 - [x] **Backups** do banco **e** dos uploads, cifrados com `age` para duas
-  chaves (a do dono fica offline), com cópia externa via `rclone` e
-  **teste automático de restauração** mensal.
+  chaves (a do dono fica offline), com cópia externa opcional via `rclone` e
+  **teste automático de restauração** mensal num PostgreSQL temporário sem
+  rede.
 - [x] **Timers** diários: `purge-locations` e `purge-sessions`.
-- [x] **Deploy**: o root nunca executa código do checkout. Os scripts de
-  operação são copiados para `/usr/local/sbin` depois de revisados. O
-  `npm ci --ignore-scripts` impede que dependências executem código na
-  instalação, e as migrations rodam via `systemd-run` como usuário sem
-  privilégios.
-- [x] **CI** (GitHub Actions): lint (inclui `ruff` S), testes do backend com
-  PostgreSQL real, testes e build do frontend, `pip-audit` e `npm audit`.
+- [x] **CI** (GitHub Actions): lint (inclui `ruff` S), testes, `pip-audit`,
+  `npm audit` e teste de ponta a ponta da stack de produção.
   `permissions: contents: read` e nenhuma senha versionada.
-- [x] `APP_ENV=production` no modelo de configuração; a API recusa subir com
+- [x] `APP_ENV=production` fixo no compose; a API recusa subir com
   `DEV_SEED_PASSWORD`.
 
 ### Riscos aceitos na produção
 
 | Risco | Por que aceito | Mitigação |
 |---|---|---|
+| Servidor compartilhado com outros sistemas | Custo; padrão já adotado no servidor | Redes próprias, nenhuma porta publicada, contêineres sem root; o socket do Docker só é acessível ao root e ao Traefik |
 | A chave privada de backup do servidor fica no servidor | Necessária para o teste automático de restauração | Quem tem root já acessa o banco ao vivo; a cifra protege a cópia externa. A chave do dono fica offline |
-| Actions do CI referenciadas por tag, não por SHA | Simplicidade; o CI não tem segredos nem permissão de escrita | Fixar por SHA (com Dependabot) é o próximo endurecimento |
-| Migrations rodam antes do reinício da API | Deploy sem janela de manutenção | Regra *expand → contract*, documentada no runbook |
+| Tiles do OpenStreetMap no início | Volume pequeno no MVP | Trocar por provedor comercial é só configuração (`MAP_TILE_*` no `.env`) |
+| Actions do CI e imagens base referenciadas por tag, não por digest | Simplicidade; o CI não tem segredos nem permissão de escrita | Fixar por SHA/digest (com Dependabot) é o próximo endurecimento |
+| Migrations rodam antes da troca da API | Deploy sem janela de manutenção | Regra *expand → contract*, documentada no runbook |

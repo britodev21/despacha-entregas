@@ -1,12 +1,12 @@
 # Backup sem teste de restauração não é backup. Este serviço restaura o
-# backup mais recente num banco TEMPORÁRIO, confere e apaga o temporário.
+# backup mais recente num PostgreSQL TEMPORÁRIO e sem rede, confere e apaga.
 [Unit]
 Description=DESPACHA teste de restauração do backup
-After=postgresql.service
+After=docker.service
+Wants=docker.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/sbin/despacha-restore-test
+ExecStart=/docker/despacha/deploy/scripts/restore-test.sh
 Nice=10
 PrivateTmp=true
-ProtectSystem=full

@@ -1,0 +1,6 @@
+# Só no CI: publica a porta da tela para o teste de ponta a ponta.
+# Em produção quem fala com o contêiner `web` é o Traefik; nada é publicado.
+services:
+  web:
+    ports:
+      - "127.0.0.1:8080:8080"

@@ -1,23 +1,18 @@
 #!/usr/bin/env bash
-# DESPACHA — comandos administrativos (python -m app.cli) com a configuração
-# de produção. Instalado como /usr/local/sbin/despacha-cli.
+# DESPACHA — comandos administrativos (python -m app.cli) no contêiner da API.
+# Atalho sugerido: ln -s /docker/despacha/deploy/scripts/cli.sh /usr/local/sbin/despacha-cli
 #
-#   sudo despacha-cli create-company --name "<NOME_DA_EMPRESA>"
-#   sudo despacha-cli create-user --company-id <ID> --name "<NOME>" \
+#   despacha-cli create-company --name "<NOME_DA_EMPRESA>"
+#   despacha-cli create-user --company-id <ID> --name "<NOME>" \
 #       --email <EMAIL> --role ADMIN --password-stdin
-#
-# Roda como `despacha`, num processo isolado, lendo o backend.env com o mesmo
-# parser do serviço da API. A entrada padrão é repassada (--password-stdin).
+#   despacha-cli purge-locations
 
 set -Eeuo pipefail
 
-[[ $EUID -eq 0 ]] || { echo "rode como root (sudo)" >&2; exit 1; }
+APP_DIR="${APP_DIR:-/docker/despacha}"
 
-APP_DIR=/opt/despacha/app
+# Sem terminal (timer do systemd, senha via pipe): -T repassa a entrada padrão.
+tty_flag=()
+[[ -t 0 ]] || tty_flag=(-T)
 
-exec systemd-run --quiet --wait --pipe --collect \
-    --uid=despacha --gid=despacha \
-    -p WorkingDirectory="$APP_DIR/backend" \
-    -p EnvironmentFile=/etc/despacha/backend.env \
-    -p NoNewPrivileges=yes -p ProtectSystem=strict -p PrivateTmp=yes \
-    "$APP_DIR/backend/.venv/bin/python" -m app.cli "$@"
+exec docker compose --project-directory "$APP_DIR" exec "${tty_flag[@]}" api python -m app.cli "$@"

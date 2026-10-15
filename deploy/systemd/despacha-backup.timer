@@ -2,8 +2,9 @@
 Description=Agenda o backup diário do DESPACHA
 
 [Timer]
-OnCalendar=*-*-* 03:30:00
-RandomizedDelaySec=15m
+# Madrugada, fora do horário de entregas e dos backups de outros sistemas.
+OnCalendar=*-*-* 03:45:00
+RandomizedDelaySec=10m
 Persistent=true
 
 [Install]

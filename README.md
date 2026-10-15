@@ -103,7 +103,7 @@ App em `http://127.0.0.1:5173`. O Vite encaminha `/api` para o backend (mesma or
 
 ## 🚀 Produção
 
-Configuração de Nginx, systemd, backup cifrado com teste de restauração, scripts de deploy e o runbook completo estão em [deploy/](deploy/). O CI (GitHub Actions) roda lint, testes e auditoria de dependências a cada push.
+Docker Compose atrás de um Traefik (`docker-compose.yml`), backup cifrado com teste de restauração, scripts de deploy e o runbook completo em [deploy/](deploy/). O CI (GitHub Actions) roda lint, testes, auditoria de dependências e um teste de ponta a ponta da stack de produção a cada push.
 
 ## 🔐 Foco
 

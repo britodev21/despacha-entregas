@@ -1,0 +1,153 @@
+# DESPACHA em produção: banco, migrations, API e tela.
+#
+# Quem recebe a internet é o Traefik que já roda no servidor: ele faz o HTTPS
+# e encaminha o domínio para o contêiner `web`. Banco e API não publicam
+# porta nenhuma; o banco fica numa rede sem saída para a internet.
+#
+#   internet → Traefik → web (Nginx :8080) → api (:8000) → db (:5432)
+#
+# Tudo que muda de uma instalação para outra (domínio, senhas) fica no `.env`
+# ao lado deste arquivo, que NUNCA vai para o repositório. Modelo:
+# `.env.example`. Passo a passo: deploy/README.md.
+
+name: despacha
+
+x-logging: &logging
+  # Sem limite, o log do Docker cresce até encher o disco.
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-hardening: &hardening
+  read_only: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      # Superusuário: só para manutenção (backup roda pelo socket local).
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+      DESPACHA_OWNER_PASSWORD: ${DESPACHA_OWNER_PASSWORD:?defina DESPACHA_OWNER_PASSWORD no .env}
+      DESPACHA_APP_PASSWORD: ${DESPACHA_APP_PASSWORD:?defina DESPACHA_APP_PASSWORD no .env}
+    volumes:
+      # PostgreSQL 18+: o volume vai em /var/lib/postgresql (não mais .../data).
+      - banco:/var/lib/postgresql
+      - ./backend/scripts/setup_db.sql:/despacha/setup_db.sql:ro
+      - ./deploy/docker/db-init.sh:/docker-entrypoint-initdb.d/10-despacha.sh:ro
+    healthcheck:
+      # Por TCP: durante a criação inicial o servidor só escuta no socket local,
+      # então "pronto" aqui significa usuários e banco já criados.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d despacha"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    networks:
+      - interna
+    mem_limit: 512m
+    logging: *logging
+
+  # Roda as migrations e termina. É o ÚNICO contêiner com a credencial do dono
+  # do schema: a API em execução nunca a recebe.
+  migrate:
+    build: ./backend
+    image: despacha-api
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+psycopg://despacha_app:${DESPACHA_APP_PASSWORD}@db:5432/despacha
+      MIGRATIONS_DATABASE_URL: postgresql+psycopg://despacha_owner:${DESPACHA_OWNER_PASSWORD}@db:5432/despacha
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    networks:
+      - interna
+    tmpfs:
+      - /tmp
+    <<: *hardening
+    mem_limit: 256m
+    logging: *logging
+
+  api:
+    build: ./backend
+    image: despacha-api
+    restart: unless-stopped
+    environment:
+      APP_ENV: production
+      LOG_LEVEL: INFO
+      DATABASE_URL: postgresql+psycopg://despacha_app:${DESPACHA_APP_PASSWORD}@db:5432/despacha
+      JWT_SECRET: ${JWT_SECRET}
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-2}
+      LOCATION_RETENTION_DAYS: ${LOCATION_RETENTION_DAYS:-30}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-8}
+    volumes:
+      # Fotos e assinaturas: único lugar gravável da API (e entra no backup).
+      - uploads:/data/uploads
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - interna
+      - borda
+    tmpfs:
+      - /tmp
+    <<: *hardening
+    mem_limit: 512m
+    logging: *logging
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        # Vazios = padrão do código (OpenStreetMap). Ver .env.example.
+        VITE_MAP_TILE_URL: ${MAP_TILE_URL:-}
+        VITE_MAP_ATTRIBUTION: ${MAP_ATTRIBUTION:-}
+        MAP_TILE_ORIGIN: ${MAP_TILE_ORIGIN:-https://tile.openstreetmap.org}
+    image: despacha-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - borda
+    tmpfs:
+      - /tmp
+    <<: *hardening
+    mem_limit: 64m
+    logging: *logging
+    labels:
+      - traefik.enable=true
+      # Por qual rede o Traefik alcança este contêiner.
+      - traefik.docker.network=despacha-borda
+      - traefik.http.routers.despacha.rule=Host(`${DOMINIO:?defina DOMINIO no .env}`)
+      - traefik.http.routers.despacha.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.despacha.tls=true
+      - traefik.http.routers.despacha.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.services.despacha.loadbalancer.server.port=8080
+
+volumes:
+  banco:
+  uploads:
+
+networks:
+  # Banco e migrations: sem saída para a internet.
+  interna:
+    name: despacha-interna
+    internal: true
+  # Traefik → web → api. Nome fixo: é ele que vai na etiqueta do Traefik.
+  borda:
+    name: despacha-borda
