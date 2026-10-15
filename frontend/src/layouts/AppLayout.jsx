@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Map,
   Menu,
+  ScrollText,
   Settings,
   Truck,
   UserCog,
@@ -35,6 +36,7 @@ const NAV_ITEMS = [
   },
   { to: "/clientes", label: "Clientes", Icon: Contact, permission: PERMISSIONS.CLIENTS_MANAGE },
   { to: "/usuarios", label: "Usuários", Icon: UserCog, permission: PERMISSIONS.USERS_MANAGE },
+  { to: "/auditoria", label: "Auditoria", Icon: ScrollText, permission: PERMISSIONS.AUDIT_READ },
   {
     to: "/configuracoes",
     label: "Configurações",

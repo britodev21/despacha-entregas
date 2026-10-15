@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { api } from "@/api/client";
 import { authApi, endSession, onSessionEnded, refreshSession, setAccessToken } from "@/api/session";
 
 import { AuthContext } from "./AuthContext";
@@ -46,6 +47,15 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  /** Encerra a sessão em TODOS os aparelhos (ex.: celular perdido). */
+  const logoutAll = useCallback(async () => {
+    try {
+      await api.post("/auth/logout-all");
+    } finally {
+      endSession({ broadcast: true });
+    }
+  }, []);
+
   /** Atualiza token/usuário após operações que reemitem a sessão (ex.: troca de senha). */
   const applySession = useCallback((data) => {
     setAccessToken(data.access_token);
@@ -58,10 +68,11 @@ export function AuthProvider({ children }) {
       ...state,
       login,
       logout,
+      logoutAll,
       applySession,
       hasPermission: (permission) => permissions.has(permission),
     };
-  }, [state, login, logout, applySession]);
+  }, [state, login, logout, logoutAll, applySession]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

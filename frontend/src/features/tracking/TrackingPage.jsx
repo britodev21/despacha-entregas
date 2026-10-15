@@ -12,6 +12,7 @@ import { EmptyState } from "@/components/ui/EmptyState/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader/PageHeader";
 import { Skeleton } from "@/components/ui/Skeleton/Skeleton";
 import { cx } from "@/lib/cx";
+import { escapeHtml } from "@/lib/escapeHtml";
 import { formatElapsed } from "@/lib/time";
 import { usePolling, useNow } from "@/lib/usePolling";
 import { useQuery } from "@/lib/useQuery";
@@ -42,12 +43,13 @@ function isStale(location, now) {
 /**
  * Marcador com as iniciais do entregador (divIcon: HTML/CSS, sem imagens,
  * o que evita o problema clássico dos ícones do Leaflet com bundlers).
+ * O divIcon recebe HTML cru: o nome vem do cadastro, então é ESCAPADO.
  */
 function markerIcon(deliverer, stale) {
   const tone = deliverer.issues ? "issue" : "route";
   return L.divIcon({
     className: "",
-    html: `<span class="${cx(styles.marker, styles[tone], stale && styles.stale)}">${initials(deliverer.name)}</span>`,
+    html: `<span class="${cx(styles.marker, styles[tone], stale && styles.stale)}">${escapeHtml(initials(deliverer.name))}</span>`,
     iconSize: [36, 36],
     iconAnchor: [18, 18],
     popupAnchor: [0, -18],

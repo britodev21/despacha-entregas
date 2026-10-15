@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router";
 
 import { HomeRedirect, RequireAuth, RequirePermission } from "@/auth/guards";
 import { PERMISSIONS } from "@/auth/permissions";
+import { AuditPage } from "@/features/audit/AuditPage";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { ClientDetailPage } from "@/features/clients/ClientDetailPage";
 import { ClientsPage } from "@/features/clients/ClientsPage";
@@ -70,6 +71,14 @@ export const router = createBrowserRouter([
                   { index: true, element: <ClientsPage /> },
                   { path: ":clientId", element: <ClientDetailPage /> },
                 ],
+              },
+              {
+                path: "auditoria",
+                element: (
+                  <RequirePermission permission={PERMISSIONS.AUDIT_READ}>
+                    <AuditPage />
+                  </RequirePermission>
+                ),
               },
               {
                 path: "configuracoes",

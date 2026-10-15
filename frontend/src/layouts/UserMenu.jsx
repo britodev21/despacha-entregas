@@ -1,8 +1,9 @@
-import { ChevronDown, KeyRound, LogOut } from "lucide-react";
+import { ChevronDown, KeyRound, LogOut, MonitorSmartphone } from "lucide-react";
 import { useId, useState } from "react";
 
 import { useAuth } from "@/auth/AuthContext";
 import { ROLE_LABELS } from "@/auth/permissions";
+import { ConfirmDialog } from "@/components/ui/Dialog/ConfirmDialog";
 import { ChangePasswordDialog } from "@/features/account/ChangePasswordDialog";
 import { cx } from "@/lib/cx";
 import { formatPhone } from "@/lib/phone";
@@ -20,14 +21,25 @@ function initials(name) {
  * sem bibliotecas nem listeners manuais.
  */
 export function UserMenu({ compact = false }) {
-  const { user, logout } = useAuth();
+  const { user, logout, logoutAll } = useAuth();
   const menuId = useId();
   const [leaving, setLeaving] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+  const [confirmAll, setConfirmAll] = useState(false);
 
   const openChangePassword = () => {
     document.getElementById(menuId)?.hidePopover();
     setChangingPassword(true);
+  };
+
+  const openLogoutAll = () => {
+    document.getElementById(menuId)?.hidePopover();
+    setConfirmAll(true);
+  };
+
+  const handleLogoutAll = async () => {
+    setLeaving(true);
+    await logoutAll();
   };
 
   const handleLogout = async () => {
@@ -67,6 +79,10 @@ export function UserMenu({ compact = false }) {
           <KeyRound aria-hidden="true" />
           Alterar senha
         </button>
+        <button type="button" className={styles.item} onClick={openLogoutAll}>
+          <MonitorSmartphone aria-hidden="true" />
+          Sair de todos os dispositivos
+        </button>
         <button type="button" className={styles.item} onClick={handleLogout} disabled={leaving}>
           <LogOut aria-hidden="true" />
           {leaving ? "Saindo…" : "Sair"}
@@ -74,6 +90,22 @@ export function UserMenu({ compact = false }) {
       </div>
 
       {changingPassword && <ChangePasswordDialog onClose={() => setChangingPassword(false)} />}
+      {confirmAll && (
+        <ConfirmDialog
+          open
+          tone="primary"
+          title="Sair de todos os dispositivos?"
+          description="Use se perdeu o celular ou entrou em um computador de outra pessoa."
+          confirmLabel="Sair de todos"
+          loading={leaving}
+          onCancel={() => setConfirmAll(false)}
+          onConfirm={handleLogoutAll}
+        >
+          <p>
+            Todas as sessões serão encerradas na hora, inclusive esta. Depois é só entrar de novo.
+          </p>
+        </ConfirmDialog>
+      )}
     </>
   );
 }

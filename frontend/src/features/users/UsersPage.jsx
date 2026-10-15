@@ -1,4 +1,13 @@
-import { KeyRound, Pencil, Plus, Search, UserRoundCheck, UserRoundX, Users } from "lucide-react";
+import {
+  KeyRound,
+  MonitorSmartphone,
+  Pencil,
+  Plus,
+  Search,
+  UserRoundCheck,
+  UserRoundX,
+  Users,
+} from "lucide-react";
 import { useState } from "react";
 
 import { api, toApiError } from "@/api/client";
@@ -98,6 +107,19 @@ export function UsersPage() {
     }
   }
 
+  async function revokeSessions() {
+    const target = dialog.user;
+    setToggling(true);
+    try {
+      await api.post(`/users/${target.id}/revoke-sessions`);
+      handleSaved(`Sessões de ${target.name} encerradas em todos os aparelhos.`);
+    } catch (err) {
+      toast.error(toApiError(err).message);
+    } finally {
+      setToggling(false);
+    }
+  }
+
   const columns = [
     {
       key: "name",
@@ -166,6 +188,18 @@ export function UsersPage() {
             >
               <KeyRound aria-hidden="true" />
             </Button>
+            {!isMe && user.is_active && (
+              <Button
+                variant="ghost"
+                size="sm"
+                iconOnly
+                aria-label={`Encerrar sessões de ${user.name}`}
+                title="Encerrar sessões (ex.: celular perdido)"
+                onClick={() => setDialog({ type: "revoke", user })}
+              >
+                <MonitorSmartphone aria-hidden="true" />
+              </Button>
+            )}
             {!isMe && (
               <Button
                 variant="ghost"
@@ -279,6 +313,24 @@ export function UsersPage() {
           onClose={close}
           onDone={handleSaved}
         />
+      )}
+      {dialog?.type === "revoke" && (
+        <ConfirmDialog
+          open
+          tone="primary"
+          title="Encerrar sessões?"
+          description={dialog.user.name}
+          confirmLabel="Encerrar sessões"
+          loading={toggling}
+          onConfirm={revokeSessions}
+          onCancel={close}
+        >
+          <p className={styles.muted}>
+            A pessoa é desconectada na hora de todos os aparelhos e precisa entrar de novo com a
+            senha. Use em caso de celular perdido ou roubado; se a senha pode ter vazado, redefina a
+            senha também.
+          </p>
+        </ConfirmDialog>
       )}
       {dialog?.type === "toggle" && (
         <ConfirmDialog

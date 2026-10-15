@@ -35,6 +35,7 @@ const ROUTE_PERMISSIONS = [
   ["/mapa", PERMISSIONS.TRACKING_READ],
   ["/historico", PERMISSIONS.DELIVERIES_MANAGE],
   ["/configuracoes", PERMISSIONS.SETTINGS_MANAGE],
+  ["/auditoria", PERMISSIONS.AUDIT_READ],
   ["/painel", PERMISSIONS.DASHBOARD_READ],
 ];
 
