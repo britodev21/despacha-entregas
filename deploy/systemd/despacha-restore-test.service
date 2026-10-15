@@ -1,0 +1,12 @@
+# Backup sem teste de restauração não é backup. Este serviço restaura o
+# backup mais recente num banco TEMPORÁRIO, confere e apaga o temporário.
+[Unit]
+Description=DESPACHA teste de restauração do backup
+After=postgresql.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/despacha-restore-test
+Nice=10
+PrivateTmp=true
+ProtectSystem=full

@@ -43,7 +43,7 @@ O DESPACHA busca oferecer uma experiência simples para o usuário final, manten
 
 ## 🏗️ Status
 
-🚧 **Em desenvolvimento** — Fase 9 (Auditoria e segurança) concluída.
+✅ **MVP concluído** — as 10 fases do plano estão implementadas. Implantação em produção: [deploy/README.md](deploy/README.md).
 
 O projeto está sendo desenvolvido inicialmente como um MVP, com evolução progressiva das funcionalidades.
 As decisões de arquitetura e o plano de fases estão em [docs/ARQUITETURA.md](docs/ARQUITETURA.md); a revisão de segurança, em [docs/SEGURANCA.md](docs/SEGURANCA.md).
@@ -100,6 +100,10 @@ npm test          # testes automatizados (Vitest)
 ```
 
 App em `http://127.0.0.1:5173`. O Vite encaminha `/api` para o backend (mesma origem, sem CORS).
+
+## 🚀 Produção
+
+Configuração de Nginx, systemd, backup cifrado com teste de restauração, scripts de deploy e o runbook completo estão em [deploy/](deploy/). O CI (GitHub Actions) roda lint, testes e auditoria de dependências a cada push.
 
 ## 🔐 Foco
 

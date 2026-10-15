@@ -1,0 +1,11 @@
+[Unit]
+Description=Agenda a manutenção diária do DESPACHA
+
+[Timer]
+# Madrugada: fora do horário de entregas.
+OnCalendar=*-*-* 04:15:00
+RandomizedDelaySec=10m
+Persistent=true
+
+[Install]
+WantedBy=timers.target

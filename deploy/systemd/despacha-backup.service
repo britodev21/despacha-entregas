@@ -1,0 +1,14 @@
+# Backup diário: banco + fotos/assinaturas, cifrado, com cópia fora do servidor.
+[Unit]
+Description=DESPACHA backup (banco + uploads)
+After=postgresql.service
+
+[Service]
+Type=oneshot
+# Roda como root: precisa ler os uploads e chamar pg_dump como "postgres".
+# Por isso o script fica em /usr/local/sbin (dono root), nunca no checkout.
+ExecStart=/usr/local/sbin/despacha-backup
+Nice=10
+IOSchedulingClass=idle
+PrivateTmp=true
+ProtectSystem=full

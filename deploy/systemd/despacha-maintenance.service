@@ -1,0 +1,17 @@
+# Limpezas diárias (LGPD e higiene): posições antigas e sessões vencidas.
+[Unit]
+Description=DESPACHA manutenção diária (purge-locations, purge-sessions)
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=despacha
+Group=despacha
+WorkingDirectory=/opt/despacha/app/backend
+EnvironmentFile=/etc/despacha/backend.env
+ExecStart=/opt/despacha/app/backend/.venv/bin/python -m app.cli purge-locations
+ExecStart=/opt/despacha/app/backend/.venv/bin/python -m app.cli purge-sessions
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true

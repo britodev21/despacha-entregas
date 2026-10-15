@@ -756,3 +756,28 @@ Cada fase termina com commit próprio.
 | HTML cru | `escapeHtml` onde uma biblioteca exige string HTML (Leaflet) | O React escapa sozinho; bibliotecas externas não |
 | Revisão | Ver [SEGURANCA.md](SEGURANCA.md): método, achados, riscos aceitos e pendências de produção | Segurança documentada e repetível |
 
+## 20. Decisões de implementação — Fase 10 (Produção)
+
+Tudo versionado em [`deploy/`](../deploy/), com placeholders. O runbook é o
+[deploy/README.md](../deploy/README.md).
+
+| Tema | Decisão | Por quê | Alternativa descartada |
+|---|---|---|---|
+| Hospedagem | Um VPS: Nginx + Uvicorn (systemd) + PostgreSQL local | Custo e operação compatíveis com um pequeno negócio; poucas peças móveis | Kubernetes/PaaS: complexidade e custo sem ganho nesse porte |
+| Containers | Sem Docker no servidor | systemd já dá isolamento (sandbox), reinício e logs; um processo a menos para manter | Docker Compose: válido, mas acrescenta camada de rede/volumes e atualização de imagens |
+| Processo da API | Uvicorn com 2 workers, só em `127.0.0.1`, sandbox do systemd (`ProtectSystem=strict`, sem capabilities) | Se a API for invadida, o estrago fica contido: não grava no disco além dos uploads | Gunicorn + workers Uvicorn: sem ganho real para este porte |
+| Credenciais do banco | `backend.env` (API, só `despacha_app`) separado de `migrations.env` (dono do schema) | A API em execução nunca tem permissão para alterar tabelas nem a auditoria | Um arquivo só: a credencial de DDL ficaria no ambiente do processo exposto |
+| Arquivos de ambiente | Lidos pelo systemd (`EnvironmentFile`), inclusive nas migrations e na CLI via `systemd-run` | Um único parser, sem `source` no shell (valores com `&`, `$` etc. não quebram nem executam) | `source` no shell: frágil e arriscado |
+| Scripts de operação | Instalados em `/usr/local/sbin` (dono root) após revisão; o deploy avisa quando mudam | O checkout pertence ao usuário da aplicação: se o root executasse dali, uma dependência maliciosa no build viraria root | Executar direto do repositório |
+| Build do frontend | `npm ci --ignore-scripts` no servidor, como usuário sem privilégios; saída copiada para uma pasta de release do root | Nenhum pacote executa código na instalação; nenhuma dependência do projeto precisa disso no Linux | Build no CI com envio de artefato: melhor no futuro, mas exige credencial de deploy |
+| Frontend | Releases com data e commit + link simbólico `current` trocado de forma atômica | Deploy sem tela quebrada pela metade; rollback instantâneo | Sobrescrever a pasta: janela de arquivos misturados |
+| Migrations | Rodam antes do reinício, com a regra *expand → contract* | Deploy sem janela de manutenção | Parar a API durante o deploy |
+| HTTPS | Let's Encrypt com renovação via webroot; TLS 1.2/1.3 declarado no próprio site | Renova sem derrubar o Nginx; não depende de arquivos gerados pelo plugin do certbot | `certbot --nginx`: edita a configuração versionada |
+| Headers | CSP estrita (`style-src 'self'`), HSTS, `Permissions-Policy` restrita, repetidos onde há `add_header` local | Defesa em profundidade contra XSS, clickjacking e vazamento de referer | `'unsafe-inline'` em estilos: desnecessário (o Leaflet usa CSSOM) |
+| Rate limit | Nginx por IP (auth 10/min; API 20/s) + limite em memória da app | O limite da app é por processo; o do Nginx é global | Redis: mais uma peça para operar |
+| Backup | `pg_dump -Fc` + tar dos uploads, cifrado com `age` para 2 chaves (dono offline + servidor), cópia externa com `rclone` | Recupera tudo mesmo com o servidor perdido; o provedor externo só vê dados cifrados | Snapshot do provedor: útil como extra, mas preso ao provedor e sem garantia de consistência do banco |
+| Teste de restauração | Mensal e automático: restaura num banco temporário, confere migrations e contagens, apaga | Backup que nunca foi restaurado não é confiável | Teste manual "quando lembrar" |
+| Manutenção | Timers diários de `purge-locations` (LGPD) e `purge-sessions` | Retenção mínima de dados pessoais sem depender de alguém lembrar | Cron: timers têm `Persistent=` (rodam se o servidor estava desligado) e logs no journal |
+| Monitoramento | Monitor externo em `/api/v1/health` + pings dos timers (backup, restauração) | Alerta quando algo para, inclusive quando o servidor inteiro cai | Stack de observabilidade completa: desproporcional ao porte |
+| CI | GitHub Actions: ruff, pytest com PostgreSQL real, oxlint, Prettier, Vitest, build, `pip-audit`, `npm audit` | Nada quebrado ou vulnerável chega à `main` sem aviso; sem segredos (senhas geradas no job) | Testes só locais |
+

@@ -1,0 +1,130 @@
+# DESPACHA — integração contínua: roda a cada push e pull request.
+#
+# Segurança:
+# - permissions: só leitura do código; o workflow não publica nada.
+# - Nenhuma senha no repositório: o PostgreSQL do CI aceita conexões sem senha
+#   (container descartável, só existe durante o job) e as senhas dos usuários
+#   do banco são geradas na hora.
+# - Endurecimento possível: fixar as actions por SHA do commit em vez da tag.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Instalar dependências
+        run: uv sync --frozen
+
+      - name: Lint (ruff, inclui regras de segurança)
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: Criar usuários e banco de teste
+        run: |
+          app_pw="$(openssl rand -hex 24)"
+          owner_pw="$(openssl rand -hex 24)"
+          echo "::add-mask::$app_pw"
+          echo "::add-mask::$owner_pw"
+          psql -h localhost -U postgres -v owner_password="$owner_pw" -v app_password="$app_pw" \
+            -v db_name=despacha_test -f scripts/setup_db.sql
+          {
+            echo "TEST_DATABASE_URL=postgresql+psycopg://despacha_app:${app_pw}@localhost:5432/despacha_test"
+            echo "TEST_MIGRATIONS_DATABASE_URL=postgresql+psycopg://despacha_owner:${owner_pw}@localhost:5432/despacha_test"
+            echo "JWT_SECRET=$(openssl rand -hex 32)"
+          } >> "$GITHUB_ENV"
+
+      - name: Testes
+        run: uv run pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Lint e formatação
+        run: |
+          npm run lint
+          npm run format:check
+
+      - name: Testes
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Vulnerabilidades conhecidas (Python)
+        working-directory: backend
+        run: |
+          uv export --frozen --no-emit-project --format requirements-txt > "$RUNNER_TEMP/req.txt"
+          uvx pip-audit --strict --disable-pip -r "$RUNNER_TEMP/req.txt"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Vulnerabilidades conhecidas (npm)
+        working-directory: frontend
+        run: npm audit --audit-level=high
