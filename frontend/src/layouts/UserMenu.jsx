@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 import { useAuth } from "@/auth/AuthContext";
 import { ROLE_LABELS } from "@/auth/permissions";
 import { ConfirmDialog } from "@/components/ui/Dialog/ConfirmDialog";
+import { ThemeToggle } from "@/components/ui/ThemeToggle/ThemeToggle";
 import { ChangePasswordDialog } from "@/features/account/ChangePasswordDialog";
 import { cx } from "@/lib/cx";
 import { formatPhone } from "@/lib/phone";
@@ -20,7 +21,7 @@ function initials(name) {
  * fechar ao clicar fora, fechar com Esc e camada por cima de tudo vêm de graça,
  * sem bibliotecas nem listeners manuais.
  */
-export function UserMenu({ compact = false }) {
+export function UserMenu({ compact = false, themeInMenu = false }) {
   const { user, logout, logoutAll } = useAuth();
   const menuId = useId();
   const [leaving, setLeaving] = useState(false);
@@ -75,6 +76,12 @@ export function UserMenu({ compact = false }) {
             {ROLE_LABELS[user.role]} · {user.company_name}
           </p>
         </div>
+        {themeInMenu && (
+          <div className={styles.theme}>
+            <span aria-hidden="true">Tema</span>
+            <ThemeToggle />
+          </div>
+        )}
         <button type="button" className={styles.item} onClick={openChangePassword}>
           <KeyRound aria-hidden="true" />
           Alterar senha
