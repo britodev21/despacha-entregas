@@ -744,3 +744,15 @@ Cada fase termina com commit próprio.
 | Minimização na exportação | Sem telefone nem endereço completo; exportação auditada | Exportar dados pessoais em massa é ação sensível (LGPD) |
 | Histórico | Mesmo endpoint de entregas com filtros (período, status, entregador, busca), paginação de 50 | Sem duplicar API; sem BI |
 
+## 19. Decisões de implementação — Fase 9 (Auditoria e segurança)
+
+| Tema | Decisão | Por quê |
+|---|---|---|
+| Consulta de auditoria | `GET /audit` só para admin, filtros por categoria/usuário/período, somente leitura | Responder "quem fez o quê e quando" sem abrir brecha para alterar registros |
+| Encerrar sessões | Revoga refresh tokens e marca `sessions_revoked_at`; tokens emitidos antes são recusados | Celular perdido/roubado perde o acesso na hora, não em 15 min |
+| `iat` fracionário | Timestamp com fração de segundo no JWT | Revogação no mesmo segundo da emissão também vale |
+| Limpeza | `purge-sessions` remove sessões vencidas/revogadas antigas | Tabela de sessões não cresce para sempre |
+| Travas de produção | Recusa CORS sem https e `DEV_SEED_PASSWORD` em produção | Configuração perigosa falha cedo, na inicialização |
+| HTML cru | `escapeHtml` onde uma biblioteca exige string HTML (Leaflet) | O React escapa sozinho; bibliotecas externas não |
+| Revisão | Ver [SEGURANCA.md](SEGURANCA.md): método, achados, riscos aceitos e pendências de produção | Segurança documentada e repetível |
+

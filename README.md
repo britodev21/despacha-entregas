@@ -43,10 +43,10 @@ O DESPACHA busca oferecer uma experiência simples para o usuário final, manten
 
 ## 🏗️ Status
 
-🚧 **Em desenvolvimento** — Fase 8 (Painel e histórico) concluída.
+🚧 **Em desenvolvimento** — Fase 9 (Auditoria e segurança) concluída.
 
 O projeto está sendo desenvolvido inicialmente como um MVP, com evolução progressiva das funcionalidades.
-As decisões de arquitetura e o plano de fases estão em [docs/ARQUITETURA.md](docs/ARQUITETURA.md).
+As decisões de arquitetura e o plano de fases estão em [docs/ARQUITETURA.md](docs/ARQUITETURA.md); a revisão de segurança, em [docs/SEGURANCA.md](docs/SEGURANCA.md).
 
 ## 💻 Rodando localmente
 
