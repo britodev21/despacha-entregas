@@ -4,6 +4,7 @@ import { api } from "@/api/client";
 import { authApi, endSession, onSessionEnded, refreshSession, setAccessToken } from "@/api/session";
 
 import { AuthContext } from "./AuthContext";
+import { rememberSession } from "./sessionHint";
 
 /**
  * Estado de autenticação da aplicação.
@@ -30,6 +31,10 @@ export function AuthProvider({ children }) {
       unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (state.status !== "loading") rememberSession(state.status === "authenticated");
+  }, [state.status]);
 
   const login = useCallback(async (identifier, password) => {
     const { data } = await authApi.post("/login", { identifier, password });

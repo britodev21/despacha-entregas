@@ -112,6 +112,7 @@ services:
         VITE_MAP_TILE_URL: ${MAP_TILE_URL:-}
         VITE_MAP_ATTRIBUTION: ${MAP_ATTRIBUTION:-}
         MAP_TILE_ORIGIN: ${MAP_TILE_ORIGIN:-https://tile.openstreetmap.org}
+        VITE_CONTACT_WHATSAPP: ${CONTACT_WHATSAPP:-}
     image: despacha-web
     restart: unless-stopped
     depends_on:

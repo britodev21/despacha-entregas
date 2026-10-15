@@ -1,0 +1,470 @@
+/* Apresentação pública do DESPACHA. Mobile-first; só tokens do design system
+   (cores, espaço, tipografia), então claro/escuro funcionam sozinhos. */
+
+.page {
+  min-height: 100dvh;
+  overflow-x: clip;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Largura padrão de conteúdo: 16px de respiro nas laterais no celular. */
+.headerInner,
+.hero,
+.section,
+.cta,
+.footer {
+  width: min(100% - 2rem, var(--container-max));
+  margin-inline: auto;
+}
+
+/* ---------------------------------------------------------------- topo */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  border-bottom: 1px solid var(--color-border);
+  background-color: color-mix(in srgb, var(--color-bg) 85%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.headerInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  height: 4rem;
+}
+
+.headerNav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* No celular o botão de demonstração já está no hero, logo abaixo. */
+.headerNav > .headerDemo {
+  display: none;
+}
+
+@media (min-width: 40rem) {
+  .headerNav > .headerDemo {
+    display: inline-flex;
+  }
+}
+
+/* ---------------------------------------------------------------- hero */
+
+.hero {
+  display: grid;
+  gap: var(--space-10);
+  padding-block: var(--space-10) var(--space-12);
+}
+
+@media (min-width: 64rem) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    align-items: center;
+    gap: var(--space-12);
+    padding-block: var(--space-16);
+  }
+}
+
+.eyebrow {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.02em;
+  color: var(--color-brand-strong);
+}
+
+.heroTitle {
+  margin: var(--space-3) 0 var(--space-4);
+  font-size: clamp(2rem, 1.35rem + 3vw, 3.25rem);
+  font-weight: var(--weight-extrabold);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.lead {
+  max-width: 36rem;
+  font-size: var(--text-lg);
+  line-height: var(--leading-normal);
+  color: var(--color-text-muted);
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+/* Celular: botões na largura toda (alvo de toque maior, visual alinhado). */
+.heroActions > * {
+  flex: 1 1 100%;
+}
+
+@media (min-width: 40rem) {
+  .heroActions > * {
+    flex: 0 0 auto;
+  }
+}
+
+.heroChecks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.heroChecks li,
+.bullets li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
+.heroChecks svg,
+.bullets svg {
+  flex-shrink: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--status-delivered-fg);
+}
+
+/* Print real do sistema numa "janela" + o celular do entregador por cima. */
+.heroVisual {
+  position: relative;
+  padding-bottom: 10%;
+}
+
+.browser {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.browserBar {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 1.75rem;
+  padding: 0 var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-surface-sunken);
+}
+
+.browserBar span {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-border-strong);
+}
+
+.browser img,
+.heroPhone img,
+.featureShot img,
+.featurePhone img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.heroPhone,
+.featurePhone {
+  overflow: hidden;
+  border: 0.375rem solid var(--graphite-900);
+  border-radius: 1.5rem;
+  background-color: var(--graphite-900);
+  box-shadow: var(--shadow-lg);
+}
+
+.heroPhone {
+  position: absolute;
+  right: 4%;
+  bottom: 0;
+  width: 27%;
+  max-width: 13rem;
+  margin: 0;
+}
+
+/* --------------------------------------------------------- seções gerais */
+
+.section {
+  padding-block: var(--space-12);
+}
+
+@media (min-width: 64rem) {
+  .section {
+    padding-block: var(--space-16);
+  }
+}
+
+.sectionHead {
+  max-width: 40rem;
+  margin: 0 auto var(--space-8);
+  text-align: center;
+}
+
+.sectionTitle,
+.ctaTitle {
+  margin-top: var(--space-2);
+  font-size: clamp(1.5rem, 1.2rem + 1.5vw, 2.25rem);
+  font-weight: var(--weight-extrabold);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+/* ------------------------------------------------------- como funciona */
+
+.steps {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 40rem) {
+  .steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .steps {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.step {
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+}
+
+.step p {
+  color: var(--color-text-muted);
+  line-height: var(--leading-normal);
+}
+
+.stepIcon {
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-md);
+  background-color: var(--color-brand-soft);
+  color: var(--color-on-brand-soft);
+}
+
+.stepIcon svg {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+.stepTitle {
+  margin: var(--space-4) 0 var(--space-1);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+}
+
+.stepNumber {
+  color: var(--color-brand-strong);
+}
+
+/* ---------------------------------------------------------- benefícios */
+
+.features {
+  display: grid;
+  gap: var(--space-12);
+}
+
+@media (min-width: 64rem) {
+  .features {
+    gap: var(--space-16);
+  }
+}
+
+.feature {
+  display: grid;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+@media (min-width: 56rem) {
+  .feature {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+    gap: var(--space-12);
+  }
+
+  /* Alterna texto e imagem para dar ritmo à leitura. */
+  .reverse .featureText {
+    order: 2;
+  }
+}
+
+.featureTitle {
+  margin: var(--space-2) 0 var(--space-3);
+  font-size: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+  font-weight: var(--weight-extrabold);
+  line-height: var(--leading-snug);
+  text-wrap: balance;
+}
+
+.featureLead {
+  font-size: var(--text-lg);
+  line-height: var(--leading-normal);
+  color: var(--color-text-muted);
+}
+
+.bullets {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-5) 0 0;
+  padding: 0;
+  list-style: none;
+  font-weight: var(--weight-medium);
+}
+
+.featureShot {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.featurePhone {
+  width: min(16rem, 70%);
+  margin: 0 auto;
+}
+
+/* ----------------------------------------------------------- confiança */
+
+.trust {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 40rem) {
+  .trust {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .trust {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.trust li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+}
+
+.trust svg {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--color-brand);
+}
+
+/* ------------------------------------------------------ chamada final */
+
+/* Cores invertidas (texto vira fundo): contraste alto nos dois temas. */
+.cta {
+  margin-block: var(--space-8) var(--space-16);
+  padding: var(--space-10) var(--space-6);
+  border-radius: var(--radius-xl);
+  background-color: var(--color-text);
+  color: var(--color-text-inverse);
+  text-align: center;
+}
+
+@media (min-width: 40rem) {
+  .cta {
+    padding: var(--space-16) var(--space-10);
+  }
+}
+
+.ctaText {
+  max-width: 32rem;
+  margin: var(--space-3) auto var(--space-6);
+  font-size: var(--text-lg);
+  opacity: 0.9;
+}
+
+.ctaActions {
+  display: flex;
+  justify-content: center;
+}
+
+/* -------------------------------------------------------------- rodapé */
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-6);
+  padding-block: var(--space-8);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  color: var(--color-text-subtle);
+}
+
+.footerLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  font-weight: var(--weight-medium);
+  color: var(--color-text-muted);
+}
+
+.footerLink:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+/* ----------------------------------------------------------- movimento */
+
+@media (prefers-reduced-motion: no-preference) {
+  .heroText,
+  .heroVisual {
+    animation: rise var(--duration-slow) var(--ease-standard) both;
+  }
+
+  .heroVisual {
+    animation-delay: 80ms;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}

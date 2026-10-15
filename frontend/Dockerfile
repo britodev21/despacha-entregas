@@ -12,7 +12,11 @@ COPY . .
 # Variáveis VITE_* são PÚBLICAS (vão para o JavaScript do navegador).
 ARG VITE_MAP_TILE_URL=https://tile.openstreetmap.org/{z}/{x}/{y}.png
 ARG VITE_MAP_ATTRIBUTION="&copy; OpenStreetMap"
-ENV VITE_MAP_TILE_URL=$VITE_MAP_TILE_URL VITE_MAP_ATTRIBUTION=$VITE_MAP_ATTRIBUTION
+# WhatsApp do botão "Agendar demonstração" da página inicial (vazio = sem botão).
+ARG VITE_CONTACT_WHATSAPP=""
+ENV VITE_MAP_TILE_URL=$VITE_MAP_TILE_URL \
+    VITE_MAP_ATTRIBUTION=$VITE_MAP_ATTRIBUTION \
+    VITE_CONTACT_WHATSAPP=$VITE_CONTACT_WHATSAPP
 RUN npm run build
 
 FROM nginxinc/nginx-unprivileged:stable-alpine

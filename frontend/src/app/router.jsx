@@ -1,9 +1,10 @@
 import { lazy } from "react";
 import { createBrowserRouter } from "react-router";
 
-import { HomeRedirect, RequireAuth, RequirePermission } from "@/auth/guards";
+import { RequireAuth, RequirePermission } from "@/auth/guards";
 import { PERMISSIONS } from "@/auth/permissions";
 import { LoginPage } from "@/features/auth/LoginPage";
+import { HomeRoute } from "@/features/landing/HomeRoute";
 import { NotFoundPage } from "@/features/system/NotFoundPage";
 import { RouteErrorPage } from "@/features/system/RouteErrorPage";
 import { LazyTrackingPage } from "@/features/tracking/LazyTrackingPage";
@@ -47,11 +48,11 @@ export const router = createBrowserRouter([
     errorElement: <RouteErrorPage />,
     children: [
       { path: "/login", element: <LoginPage /> },
+      // "/": apresentação para visitantes; quem tem sessão vai para a sua área.
+      { index: true, element: <HomeRoute /> },
       {
-        path: "/",
         element: <RequireAuth />,
         children: [
-          { index: true, element: <HomeRedirect /> },
           {
             // Painel: admin e operador
             element: (
