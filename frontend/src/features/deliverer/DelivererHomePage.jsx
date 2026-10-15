@@ -81,6 +81,8 @@ export function DelivererHomePage() {
 
   return (
     <>
+      {/* As abas já dizem onde se está; o título serve à navegação por leitor de tela. */}
+      <h1 className="sr-only">Minhas entregas</h1>
       <div className={styles.tabs} role="tablist" aria-label="Visualização">
         {TABS.map((tab) => (
           <button

@@ -106,7 +106,14 @@ export function AppLayout() {
             </Button>
           </div>
           <Navigation onNavigate={closeDrawer} />
-          <p className={styles.company}>{user.company_name}</p>
+          <div className={styles.drawerFooter}>
+            {/* No celular o tema fica aqui: no topo não cabe junto com o menu da conta. */}
+            <div className={styles.drawerTheme}>
+              <span aria-hidden="true">Tema</span>
+              <ThemeToggle />
+            </div>
+            <p className={styles.company}>{user.company_name}</p>
+          </div>
         </div>
       </dialog>
 
@@ -123,7 +130,7 @@ export function AppLayout() {
           </Button>
           <Logo size="sm" className={styles.topbarLogo} />
           <div className={styles.topbarActions}>
-            <ThemeToggle />
+            <ThemeToggle className={styles.topbarTheme} />
             <UserMenu />
           </div>
         </header>
