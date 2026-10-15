@@ -108,7 +108,14 @@ export function TrackingPage() {
       <div className={styles.layout}>
         <div className={styles.mapWrap}>
           <MapContainer center={BRAZIL_CENTER} zoom={4} className={styles.map} scrollWheelZoom>
-            <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} className={styles.tiles} />
+            {/* A página usa Referrer-Policy no-referrer, mas o OSM exige Referer nos tiles:
+                só aqui enviamos a origem (sem caminho, logo sem IDs de entrega). */}
+            <TileLayer
+              url={TILE_URL}
+              attribution={TILE_ATTRIBUTION}
+              referrerPolicy="strict-origin-when-cross-origin"
+              className={styles.tiles}
+            />
             <FitBounds points={points} />
             <FlyTo target={focus} />
             {located.map((deliverer) => {

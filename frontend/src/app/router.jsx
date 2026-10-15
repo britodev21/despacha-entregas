@@ -1,25 +1,46 @@
+import { lazy } from "react";
 import { createBrowserRouter } from "react-router";
 
 import { HomeRedirect, RequireAuth, RequirePermission } from "@/auth/guards";
 import { PERMISSIONS } from "@/auth/permissions";
-import { AuditPage } from "@/features/audit/AuditPage";
 import { LoginPage } from "@/features/auth/LoginPage";
-import { ClientDetailPage } from "@/features/clients/ClientDetailPage";
-import { ClientsPage } from "@/features/clients/ClientsPage";
-import { DashboardPage } from "@/features/dashboard/DashboardPage";
-import { OperationsPage } from "@/features/deliveries/OperationsPage";
-import { HistoryPage } from "@/features/history/HistoryPage";
-import { DelivererDeliveryPage } from "@/features/deliverer/DelivererDeliveryPage";
-import { DelivererHomePage } from "@/features/deliverer/DelivererHomePage";
-import { SettingsPage } from "@/features/settings/SettingsPage";
 import { NotFoundPage } from "@/features/system/NotFoundPage";
 import { RouteErrorPage } from "@/features/system/RouteErrorPage";
-import { SystemStatusPage } from "@/features/system/SystemStatusPage";
 import { LazyTrackingPage } from "@/features/tracking/LazyTrackingPage";
-import { UsersPage } from "@/features/users/UsersPage";
 import { AppLayout } from "@/layouts/AppLayout";
-
 import { DelivererLayout } from "@/layouts/DelivererLayout";
+
+// Cada tela é baixada só quando aberta: o celular do entregador não carrega o
+// painel do operador, e vice-versa. O carregamento aparece no <Suspense> dos
+// layouts. Login e layouts ficam no pacote inicial (primeira tela rápida).
+const lazyPage = (load, name) => lazy(() => load().then((module) => ({ default: module[name] })));
+
+const DashboardPage = lazyPage(() => import("@/features/dashboard/DashboardPage"), "DashboardPage");
+const OperationsPage = lazyPage(
+  () => import("@/features/deliveries/OperationsPage"),
+  "OperationsPage",
+);
+const HistoryPage = lazyPage(() => import("@/features/history/HistoryPage"), "HistoryPage");
+const ClientsPage = lazyPage(() => import("@/features/clients/ClientsPage"), "ClientsPage");
+const ClientDetailPage = lazyPage(
+  () => import("@/features/clients/ClientDetailPage"),
+  "ClientDetailPage",
+);
+const AuditPage = lazyPage(() => import("@/features/audit/AuditPage"), "AuditPage");
+const SettingsPage = lazyPage(() => import("@/features/settings/SettingsPage"), "SettingsPage");
+const UsersPage = lazyPage(() => import("@/features/users/UsersPage"), "UsersPage");
+const DelivererHomePage = lazyPage(
+  () => import("@/features/deliverer/DelivererHomePage"),
+  "DelivererHomePage",
+);
+const DelivererDeliveryPage = lazyPage(
+  () => import("@/features/deliverer/DelivererDeliveryPage"),
+  "DelivererDeliveryPage",
+);
+const SystemStatusPage = lazyPage(
+  () => import("@/features/system/SystemStatusPage"),
+  "SystemStatusPage",
+);
 
 export const router = createBrowserRouter([
   {

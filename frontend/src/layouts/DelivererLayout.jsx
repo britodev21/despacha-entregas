@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { Outlet } from "react-router";
 
 import { Logo } from "@/components/brand/Logo";
+import { PageLoader } from "@/components/ui/PageLoader/PageLoader";
 import { ThemeToggle } from "@/components/ui/ThemeToggle/ThemeToggle";
 import { useTracking } from "@/features/tracking/TrackingContext";
 import { TrackingProvider } from "@/features/tracking/TrackingProvider";
@@ -57,7 +59,9 @@ export function DelivererLayout() {
           </div>
         </header>
         <main className={styles.content}>
-          <Outlet />
+          <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </TrackingProvider>

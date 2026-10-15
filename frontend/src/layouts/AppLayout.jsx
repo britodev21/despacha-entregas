@@ -10,13 +10,14 @@ import {
   UserCog,
   X,
 } from "lucide-react";
-import { useRef } from "react";
+import { Suspense, useRef } from "react";
 import { NavLink, Outlet } from "react-router";
 
 import { useAuth } from "@/auth/AuthContext";
 import { PERMISSIONS } from "@/auth/permissions";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/Button/Button";
+import { PageLoader } from "@/components/ui/PageLoader/PageLoader";
 import { ThemeToggle } from "@/components/ui/ThemeToggle/ThemeToggle";
 import { cx } from "@/lib/cx";
 
@@ -136,7 +137,9 @@ export function AppLayout() {
         </header>
 
         <main id="conteudo" tabIndex={-1} className={styles.content}>
-          <Outlet />
+          <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>

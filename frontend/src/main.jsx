@@ -8,7 +8,10 @@ import { RouterProvider } from "react-router/dom";
 import { router } from "./app/router";
 import { AuthProvider } from "./auth/AuthProvider";
 import { ToastProvider } from "./components/ui/Toast/ToastProvider";
+import { installStaleChunkReload } from "./lib/reloadOnStaleChunk";
 import { ThemeProvider } from "./theme/ThemeProvider";
+
+installStaleChunkReload();
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
