@@ -1,9 +1,11 @@
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
 import { createBrowserRouter } from "react-router";
 
-import { HomeRedirect, RequireAuth, RequirePermission } from "@/auth/guards";
+import { RequireAuth, RequirePermission } from "@/auth/guards";
 import { PERMISSIONS } from "@/auth/permissions";
+import { FullPageLoader } from "@/components/ui/FullPageLoader/FullPageLoader";
 import { LoginPage } from "@/features/auth/LoginPage";
+import { HomeRoute } from "@/features/landing/HomeRoute";
 import { NotFoundPage } from "@/features/system/NotFoundPage";
 import { RouteErrorPage } from "@/features/system/RouteErrorPage";
 import { LazyTrackingPage } from "@/features/tracking/LazyTrackingPage";
@@ -37,9 +39,15 @@ const DelivererDeliveryPage = lazyPage(
   () => import("@/features/deliverer/DelivererDeliveryPage"),
   "DelivererDeliveryPage",
 );
+const SupportPage = lazyPage(() => import("@/features/support/SupportPage"), "SupportPage");
+const PrivacyPage = lazyPage(() => import("@/features/privacy/PrivacyPage"), "PrivacyPage");
 const SystemStatusPage = lazyPage(
   () => import("@/features/system/SystemStatusPage"),
   "SystemStatusPage",
+);
+
+const withSuspense = (element) => (
+  <Suspense fallback={<FullPageLoader label="Carregando" />}>{element}</Suspense>
 );
 
 export const router = createBrowserRouter([
@@ -47,11 +55,14 @@ export const router = createBrowserRouter([
     errorElement: <RouteErrorPage />,
     children: [
       { path: "/login", element: <LoginPage /> },
+      // "/": apresentação para visitantes; quem tem sessão vai para a sua área.
+      { index: true, element: <HomeRoute /> },
+      // Páginas públicas sob demanda (fora dos layouts, então com Suspense próprio).
+      { path: "/suporte", element: withSuspense(<SupportPage />) },
+      { path: "/privacidade", element: withSuspense(<PrivacyPage />) },
       {
-        path: "/",
         element: <RequireAuth />,
         children: [
-          { index: true, element: <HomeRedirect /> },
           {
             // Painel: admin e operador
             element: (
@@ -135,7 +146,9 @@ export const router = createBrowserRouter([
         ],
       },
       // Página de diagnóstico: só em desenvolvimento.
-      ...(import.meta.env.DEV ? [{ path: "/status", element: <SystemStatusPage /> }] : []),
+      ...(import.meta.env.DEV
+        ? [{ path: "/status", element: withSuspense(<SystemStatusPage />) }]
+        : []),
       { path: "*", element: <NotFoundPage /> },
     ],
   },

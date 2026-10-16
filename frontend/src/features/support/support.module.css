@@ -1,0 +1,473 @@
+.heroInner,
+.section,
+.cta {
+  width: min(100% - 2rem, var(--container-max));
+  margin-inline: auto;
+}
+
+.anchor {
+  scroll-margin-top: 5rem;
+}
+
+.eyebrow {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-brand-strong);
+}
+
+/* ================================================================ topo */
+
+.hero {
+  padding-block: var(--space-16) var(--space-10);
+  text-align: center;
+  background: radial-gradient(
+    50% 70% at 50% 0%,
+    color-mix(in srgb, var(--color-brand) 18%, transparent),
+    transparent 75%
+  );
+}
+
+.heroInner {
+  max-width: 44rem;
+}
+
+.title {
+  margin: var(--space-3) 0 var(--space-8);
+  font-size: clamp(2.25rem, 1.4rem + 3.2vw, 3.5rem);
+  font-weight: var(--weight-extrabold);
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+}
+
+.search {
+  position: relative;
+}
+
+.search input {
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0 var(--space-5) 0 3.25rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-md);
+  box-shadow: var(--shadow-md);
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+/* Placeholder com contraste suficiente (muted, não subtle). */
+.search input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.search input:focus-visible {
+  border-color: var(--color-brand);
+  outline: 3px solid color-mix(in srgb, var(--color-focus) 45%, transparent);
+  outline-offset: 2px;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  left: var(--space-5);
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--color-text-muted);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.heroMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3) var(--space-5);
+  margin-top: var(--space-6);
+}
+
+/* Estado real do sistema: o único "pontinho" da página tem significado. */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1-5) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-muted);
+}
+
+.statusDot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-text-subtle);
+}
+
+.status[data-state="ok"] .statusDot {
+  background-color: var(--status-delivered-fg);
+}
+
+.status[data-state="down"] .statusDot {
+  background-color: var(--color-danger);
+}
+
+.quickLinks {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.quickLinks a {
+  display: inline-flex;
+  text-decoration: none;
+  align-items: center;
+  min-height: 2.75rem;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-brand-strong);
+  text-underline-offset: 0.2em;
+}
+
+.quickLinks a:hover {
+  text-decoration: underline;
+}
+
+/* -------------------------------------------------------------- seções */
+
+.section {
+  padding-block: var(--space-12);
+}
+
+.sectionHead {
+  max-width: 44rem;
+  margin: 0 auto var(--space-8);
+  text-align: center;
+}
+
+.sectionTitle {
+  font-size: clamp(1.625rem, 1.2rem + 1.8vw, 2.5rem);
+  font-weight: var(--weight-extrabold);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+/* ============================================================ abas */
+
+.tablist {
+  display: flex;
+  gap: var(--space-1);
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto var(--space-6);
+  padding: var(--space-1);
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-sunken);
+}
+
+.tab {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.tab svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.tab:hover {
+  color: var(--color-text);
+}
+
+.tab[aria-selected="true"] {
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.panel {
+  display: grid;
+  gap: var(--space-8);
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(
+      70% 80% at 100% 0%,
+      color-mix(in srgb, var(--color-brand) 12%, transparent),
+      transparent 70%
+    ),
+    var(--color-surface);
+}
+
+.panel:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+@media (min-width: 64rem) {
+  .panel {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: center;
+    gap: var(--space-10);
+    padding: var(--space-10);
+  }
+}
+
+.panelIcon {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-brand-soft);
+  color: var(--color-on-brand-soft);
+}
+
+.panelIcon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.panelText h3 {
+  margin-top: var(--space-4);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-extrabold);
+}
+
+.panelSummary {
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+}
+
+/* Passos numerados com marcador próprio (círculo com número). */
+.steps {
+  display: grid;
+  gap: var(--space-4);
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: passo;
+}
+
+.steps li {
+  position: relative;
+  padding-left: 2.5rem;
+  line-height: var(--leading-normal);
+  counter-increment: passo;
+}
+
+.steps li::before {
+  content: counter(passo);
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-brand-soft);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--color-on-brand-soft);
+}
+
+.panelShot,
+.panelPhone {
+  margin: 0;
+}
+
+.panelShot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.panelPhone {
+  display: flex;
+  justify-content: center;
+}
+
+.panelPhone img {
+  display: block;
+  width: min(15rem, 70%);
+  height: auto;
+  border: 0.375rem solid var(--graphite-900);
+  border-radius: 1.6rem;
+  background-color: var(--graphite-900);
+  box-shadow: var(--shadow-lg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .panelShot img,
+  .panelPhone img {
+    animation: fade-in var(--duration-base) var(--ease-standard);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* ========================================================== perguntas */
+
+.faq {
+  width: min(100% - 2rem, 50rem);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.filter {
+  min-height: 2.5rem;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.filter:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.filter[aria-pressed="true"] {
+  border-color: var(--color-brand-strong);
+  background-color: var(--color-brand-soft);
+  color: var(--color-on-brand-soft);
+}
+
+.filter:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.resultCount {
+  min-height: 1.5rem;
+  margin: var(--space-4) 0 var(--space-2);
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  padding: var(--space-10) var(--space-6);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-xl);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.empty svg {
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-text-subtle);
+}
+
+/* ======================================================= chamada final */
+
+.cta {
+  display: grid;
+  gap: var(--space-6);
+  margin-block: var(--space-4) var(--space-16);
+  padding: var(--space-10) var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(
+      60% 120% at 0% 0%,
+      color-mix(in srgb, var(--color-brand) 14%, transparent),
+      transparent 75%
+    ),
+    var(--color-surface);
+}
+
+@media (min-width: 48rem) {
+  .cta {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    padding: var(--space-10);
+  }
+}
+
+.cta h2 {
+  font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.25rem);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: -0.02em;
+}
+
+.cta p {
+  max-width: 36rem;
+  margin-top: var(--space-2);
+  line-height: var(--leading-normal);
+  color: var(--color-text-muted);
+}
+
+.ctaLink {
+  display: inline-flex;
+  text-decoration: none;
+  align-items: center;
+  gap: var(--space-1-5);
+  min-height: 2.75rem;
+  font-weight: var(--weight-semibold);
+  color: var(--color-brand-strong);
+}
+
+.ctaLink svg {
+  width: 1rem;
+  height: 1rem;
+}

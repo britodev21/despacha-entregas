@@ -3,7 +3,6 @@ import { Outlet } from "react-router";
 
 import { Logo } from "@/components/brand/Logo";
 import { PageLoader } from "@/components/ui/PageLoader/PageLoader";
-import { ThemeToggle } from "@/components/ui/ThemeToggle/ThemeToggle";
 import { useTracking } from "@/features/tracking/TrackingContext";
 import { TrackingProvider } from "@/features/tracking/TrackingProvider";
 import { cx } from "@/lib/cx";
@@ -54,8 +53,9 @@ export function DelivererLayout() {
           <Logo size="sm" showWordmark={false} />
           <TrackingPill />
           <div className={styles.actions}>
-            <ThemeToggle />
-            <UserMenu compact />
+            {/* Tema dentro do menu da conta: no topo, junto do indicador de GPS,
+                estourava a largura do celular. */}
+            <UserMenu compact themeInMenu />
           </div>
         </header>
         <main className={styles.content}>

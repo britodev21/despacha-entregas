@@ -44,9 +44,3 @@ export function RequirePermission({ permission, children }) {
   }
   return children ?? <Outlet />;
 }
-
-/** "/" leva cada perfil para a sua tela inicial. */
-export function HomeRedirect() {
-  const { user } = useAuth();
-  return <Navigate to={homePathFor(user)} replace />;
-}

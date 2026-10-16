@@ -1,0 +1,1141 @@
+/* Apresentação pública do DESPACHA (ver docs/superpowers/specs).
+   Mobile-first; só tokens do design system, então claro/escuro funcionam
+   sozinhos. Forma: cartões 16px (radius-xl), pílulas para chips, botões do
+   sistema. Movimento sempre opcional (prefers-reduced-motion). */
+
+.heroInner,
+.section,
+.segments,
+.stats ul,
+.cta {
+  width: min(100% - 2rem, var(--container-max));
+  margin-inline: auto;
+}
+
+.anchor {
+  scroll-margin-top: 5rem;
+}
+
+.eyebrow {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-brand-strong);
+}
+
+.sectionHead {
+  max-width: 44rem;
+  margin: 0 auto var(--space-10);
+  text-align: center;
+}
+
+.sectionTitle {
+  margin-top: var(--space-3);
+  font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.75rem);
+  font-weight: var(--weight-extrabold);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.sectionHead .sectionTitle:first-child,
+.help .sectionTitle:first-child,
+.compare .sectionTitle:first-child {
+  margin-top: 0;
+}
+
+.sectionText {
+  max-width: 40rem;
+  margin-top: var(--space-4);
+  font-size: var(--text-lg);
+  line-height: var(--leading-normal);
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.sectionHead .sectionText {
+  margin-inline: auto;
+}
+
+.section {
+  padding-block: var(--space-16);
+}
+
+@media (min-width: 64rem) {
+  .section {
+    padding-block: calc(var(--space-16) * 1.5);
+  }
+}
+
+.textLink {
+  display: inline-flex;
+  text-decoration: none;
+  align-items: center;
+  gap: var(--space-1-5);
+  min-height: 2.75rem;
+  font-weight: var(--weight-semibold);
+  color: var(--color-brand-strong);
+  text-underline-offset: 0.2em;
+}
+
+.textLink:hover {
+  text-decoration: underline;
+}
+
+.textLink svg {
+  width: 1rem;
+  height: 1rem;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.textLink:hover svg {
+  transform: translateX(3px);
+}
+
+/* ================================================================ hero */
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  padding-top: var(--space-10);
+}
+
+/* Brilho de marca + grade sutil ao fundo, que some nas bordas. */
+.heroGlow {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -1;
+  height: 48rem;
+  background:
+    radial-gradient(
+      45% 55% at 85% 8%,
+      color-mix(in srgb, var(--color-brand) 20%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      38% 45% at 8% 18%,
+      color-mix(in srgb, var(--color-primary) 12%, transparent),
+      transparent 70%
+    );
+}
+
+.heroGlow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--color-border) 50%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-border) 50%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 56px 56px;
+  mask-image: radial-gradient(70% 60% at 50% 0%, #000 25%, transparent 100%);
+}
+
+.heroInner {
+  display: grid;
+  gap: var(--space-12);
+}
+
+@media (min-width: 64rem) {
+  .heroInner {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: center;
+    gap: var(--space-12);
+    min-height: min(42rem, calc(100dvh - 4rem));
+    padding-block: var(--space-6) var(--space-10);
+  }
+}
+
+.badge {
+  display: inline-flex;
+  padding: var(--space-1-5) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-muted);
+  box-shadow: var(--shadow-sm);
+}
+
+.heroTitle {
+  margin: var(--space-5) 0;
+  font-size: clamp(2.5rem, 1.5rem + 4vw, 4.25rem);
+  font-weight: var(--weight-extrabold);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+/* Marca-texto laranja por baixo do trecho principal (não é texto em gradiente). */
+.highlight {
+  padding: 0 0.06em;
+  border-radius: 0.12em;
+  background: linear-gradient(
+    transparent 62%,
+    color-mix(in srgb, var(--color-primary) 32%, transparent) 62%
+  );
+  color: inherit;
+}
+
+.lead {
+  max-width: 30rem;
+  font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+  line-height: var(--leading-normal);
+  color: var(--color-text-muted);
+}
+
+.heroActions,
+.ctaActions,
+.helpActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.heroActions {
+  margin-top: var(--space-8);
+}
+
+/* Celular: botões do hero na largura toda (alvo de toque maior). */
+.heroActions > * {
+  flex: 1 1 100%;
+}
+
+@media (min-width: 40rem) {
+  .heroActions > * {
+    flex: 0 0 auto;
+  }
+}
+
+/* Print real numa "janela" + celular + cartões flutuantes. */
+.heroVisual {
+  position: relative;
+  padding-bottom: 14%;
+}
+
+.browser {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface);
+  box-shadow:
+    0 2px 6px color-mix(in srgb, var(--color-text) 6%, transparent),
+    0 32px 64px -24px color-mix(in srgb, var(--color-brand-strong) 35%, transparent);
+}
+
+@media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
+  .browser {
+    transform: perspective(1800px) rotateY(-7deg) rotateX(2deg);
+    transform-origin: left center;
+    transition: transform var(--duration-slow) var(--ease-standard);
+  }
+
+  .heroVisual:hover .browser {
+    transform: perspective(1800px) rotateY(0) rotateX(0);
+  }
+}
+
+.browserBar {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 2rem;
+  padding: 0 var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-surface-sunken);
+}
+
+.browserBar span {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-border-strong);
+}
+
+.browserUrl {
+  margin: 0 auto;
+  padding: 0.125rem var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+}
+
+.browser img,
+.heroPhone img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.heroPhone,
+.tilePhone img {
+  border: 0.375rem solid var(--graphite-900);
+  background-color: var(--graphite-900);
+}
+
+.heroPhone {
+  position: absolute;
+  right: 3%;
+  bottom: 0;
+  width: 28%;
+  max-width: 13.5rem;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 1.6rem;
+  box-shadow: 0 24px 48px -16px color-mix(in srgb, var(--color-text) 45%, transparent);
+}
+
+.floatCard {
+  position: absolute;
+  display: none;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0.625rem var(--space-4) 0.625rem 0.625rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: color-mix(in srgb, var(--color-surface-raised) 90%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--text-sm);
+}
+
+.floatCard strong,
+.floatCard small {
+  display: block;
+}
+
+.floatCard small {
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+}
+
+@media (min-width: 48rem) {
+  .floatCard {
+    display: flex;
+  }
+}
+
+/* Sem transparência quando o sistema pede (ou o navegador não suporta blur). */
+@media (prefers-reduced-transparency: reduce) {
+  .floatCard,
+  .badge {
+    background-color: var(--color-surface-raised);
+    backdrop-filter: none;
+  }
+}
+
+.floatTop {
+  top: 12%;
+  left: -3%;
+}
+
+.floatBottom {
+  bottom: 6%;
+  left: 8%;
+}
+
+.floatIcon {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-full);
+}
+
+.floatIcon svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.floatSuccess {
+  background-color: var(--status-delivered-bg);
+  color: var(--status-delivered-fg);
+}
+
+.floatRoute {
+  background-color: var(--status-in-route-bg);
+  color: var(--status-in-route-fg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .heroText,
+  .heroVisual {
+    animation: rise 700ms var(--ease-standard) both;
+  }
+
+  .heroVisual {
+    animation-delay: 120ms;
+  }
+
+  /* Os cartões "respiram" para sugerir um sistema vivo, sem chamar atenção. */
+  .floatTop {
+    animation: float 6s ease-in-out 1s infinite alternate;
+  }
+
+  .floatBottom {
+    animation: float 7s ease-in-out infinite alternate-reverse;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes float {
+  to {
+    transform: translateY(-10px);
+  }
+}
+
+/* ============================================================ segmentos */
+
+.segments {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3) var(--space-4);
+  padding-block: var(--space-6) var(--space-4);
+}
+
+.segments p {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-subtle);
+}
+
+.segments ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.segments li {
+  padding: var(--space-1-5) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-muted);
+}
+
+/* ========================================================= antes/depois */
+
+.compare {
+  display: grid;
+  gap: var(--space-10);
+}
+
+@media (min-width: 64rem) {
+  .compare {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    align-items: center;
+    gap: var(--space-12);
+  }
+}
+
+.comparePhoto,
+.helpPhoto {
+  margin: 0;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.comparePhoto img,
+.helpPhoto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+@media (min-width: 64rem) {
+  .comparePhoto img {
+    aspect-ratio: 4 / 5;
+  }
+}
+
+.compareCols {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+}
+
+@media (min-width: 40rem) {
+  .compareCols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.compareCard {
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface);
+}
+
+.compareCard h3 {
+  margin-bottom: var(--space-4);
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+}
+
+.compareCard ul {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.compareCard li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  line-height: var(--leading-snug);
+  color: var(--color-text-muted);
+}
+
+.compareCard svg {
+  flex-shrink: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 0.1rem;
+}
+
+.compareGood {
+  border-color: color-mix(in srgb, var(--status-delivered-fg) 35%, var(--color-border));
+  background-color: color-mix(in srgb, var(--status-delivered-bg) 55%, var(--color-surface));
+}
+
+.compareGood li {
+  color: var(--color-text);
+}
+
+.iconBad {
+  color: var(--color-danger);
+}
+
+.iconGood {
+  color: var(--status-delivered-fg);
+}
+
+/* ============================================ como funciona (linha do tempo) */
+
+.timeline {
+  position: relative;
+  display: grid;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Linha que liga os passos: vertical no celular, horizontal no desktop. */
+.timeline::before {
+  content: "";
+  position: absolute;
+  top: 1.75rem;
+  bottom: 1.75rem;
+  left: 1.75rem;
+  width: 2px;
+  background: linear-gradient(
+    var(--color-brand),
+    color-mix(in srgb, var(--color-primary) 70%, var(--color-brand))
+  );
+  opacity: 0.35;
+}
+
+.timelineItem {
+  position: relative;
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  column-gap: var(--space-4);
+}
+
+.timelineIcon {
+  position: relative;
+  display: grid;
+  grid-row: span 2;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 1px solid color-mix(in srgb, var(--color-brand) 30%, var(--color-border));
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  color: var(--color-brand-strong);
+  box-shadow: 0 0 0 6px var(--color-bg);
+}
+
+.timelineIcon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.timelineItem h3 {
+  align-self: end;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+}
+
+.timelineItem p {
+  margin-top: var(--space-1);
+  line-height: var(--leading-normal);
+  color: var(--color-text-muted);
+}
+
+@media (min-width: 56rem) {
+  .timeline {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
+
+  .timeline::before {
+    top: 1.75rem;
+    bottom: auto;
+    left: 12.5%;
+    right: 12.5%;
+    width: auto;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      var(--color-brand),
+      color-mix(in srgb, var(--color-primary) 70%, var(--color-brand))
+    );
+  }
+
+  .timelineItem {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .timelineIcon {
+    grid-row: auto;
+    margin-bottom: var(--space-5);
+  }
+}
+
+/* ============================================= funcionalidades (bento) */
+
+.bento {
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (min-width: 48rem) {
+  .bento {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .bento {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tileWide {
+    grid-column: span 2;
+  }
+
+  .tileTall {
+    grid-row: span 2;
+  }
+}
+
+.tile,
+.tileSmall,
+.audienceCard {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface);
+  transition:
+    transform var(--duration-base) var(--ease-standard),
+    box-shadow var(--duration-base) var(--ease-standard),
+    border-color var(--duration-base) var(--ease-standard);
+}
+
+.tile:hover,
+.tileSmall:hover,
+.audienceCard:hover {
+  border-color: color-mix(in srgb, var(--color-brand) 35%, var(--color-border));
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Variação de fundo no bento: nem todo cartão é branco. */
+.tileBrand {
+  background:
+    radial-gradient(
+      80% 90% at 100% 0%,
+      color-mix(in srgb, var(--color-brand) 16%, transparent),
+      transparent 70%
+    ),
+    var(--color-surface);
+}
+
+.tileDark {
+  border-color: var(--graphite-900);
+  background:
+    radial-gradient(
+      90% 60% at 50% 0%,
+      color-mix(in srgb, var(--color-primary) 28%, transparent),
+      transparent 70%
+    ),
+    var(--graphite-950);
+  color: var(--slate-50);
+}
+
+.tileDark .tileText p {
+  color: var(--slate-100);
+  opacity: 0.85;
+}
+
+.tileText {
+  padding: var(--space-6) var(--space-6) var(--space-5);
+}
+
+.tileText h3,
+.tileSmall h3 {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+}
+
+.tileText p,
+.tileSmall p {
+  margin-top: var(--space-2);
+  line-height: var(--leading-normal);
+  color: var(--color-text-muted);
+}
+
+/* Print "saindo" da base do cartão. */
+.tileShot {
+  margin-top: auto;
+  padding: 0 var(--space-6);
+}
+
+.tileShot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: top left;
+  border: 1px solid var(--color-border);
+  border-bottom: 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-md);
+}
+
+/* Celular inteiro, "saindo" da base do cartão alto. */
+.tilePhone {
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  justify-content: center;
+  padding: var(--space-4) var(--space-6) 0;
+}
+
+.tilePhone img {
+  display: block;
+  width: min(19rem, 86%);
+  height: auto;
+  border-bottom: 0;
+  border-radius: 1.6rem 1.6rem 0 0;
+  box-shadow: 0 -12px 40px -12px color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+
+/* Fora do bento de 3 colunas o cartão não é alto: mostra só o topo do celular. */
+@media (max-width: 63.99rem) {
+  .tilePhone img {
+    width: min(16rem, 72%);
+    aspect-ratio: 9 / 14;
+    object-fit: cover;
+    object-position: top;
+  }
+}
+
+.tileSmall {
+  padding: var(--space-6);
+}
+
+.tileSmall h3 {
+  margin-top: var(--space-5);
+  font-size: var(--text-lg);
+}
+
+.tileIcon {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-brand-soft);
+  color: var(--color-on-brand-soft);
+}
+
+.tileIcon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.toneSuccess {
+  background-color: color-mix(in srgb, var(--status-delivered-bg) 45%, var(--color-surface));
+}
+
+.toneSuccess .tileIcon {
+  background-color: var(--status-delivered-bg);
+  color: var(--status-delivered-fg);
+}
+
+.toneAccent {
+  background-color: color-mix(in srgb, var(--color-primary) 7%, var(--color-surface));
+}
+
+.toneAccent .tileIcon {
+  background-color: color-mix(in srgb, var(--color-primary) 16%, var(--color-surface));
+  color: var(--color-primary);
+}
+
+/* ============================================================ números */
+
+.stats {
+  border-block: 1px solid var(--color-border);
+  background-color: var(--color-surface-sunken);
+}
+
+.stats ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-block: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 56rem) {
+  .stats ul {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.stats li {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+}
+
+.stats strong {
+  font-size: clamp(2rem, 1.4rem + 2.2vw, 3rem);
+  font-weight: var(--weight-extrabold);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-brand-strong);
+}
+
+.stats span {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* ============================================ para quem é (assimétrico) */
+
+.audience {
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (min-width: 56rem) {
+  .audience {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+
+  .audienceMain {
+    grid-row: span 2;
+  }
+}
+
+/* Foto ocupa o cartão; texto sobre um véu na base (contraste garantido). */
+.audienceCard {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 16rem;
+  color: var(--slate-50);
+}
+
+.audienceCard img {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 700ms var(--ease-standard);
+}
+
+.audienceCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--graphite-950) 88%, transparent) 10%,
+    color-mix(in srgb, var(--graphite-950) 25%, transparent) 60%,
+    transparent
+  );
+}
+
+.audienceCard:hover img {
+  transform: scale(1.04);
+}
+
+.audienceText {
+  position: absolute;
+  inset: auto 0 0;
+  padding: var(--space-6);
+}
+
+.audienceText h3 {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+}
+
+.audienceText p {
+  max-width: 28rem;
+  margin-top: var(--space-1);
+  line-height: var(--leading-normal);
+  color: var(--slate-100);
+}
+
+@media (min-width: 56rem) {
+  .audienceMain {
+    min-height: 32rem;
+  }
+
+  .audienceMain .audienceText h3 {
+    font-size: var(--text-2xl);
+  }
+}
+
+/* ===================================================== segurança (painel) */
+
+.trustPanel {
+  display: grid;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-6);
+  border: 1px solid color-mix(in srgb, var(--color-brand) 25%, var(--color-border));
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(
+      60% 80% at 0% 0%,
+      color-mix(in srgb, var(--color-brand) 14%, transparent),
+      transparent 70%
+    ),
+    var(--color-surface);
+}
+
+@media (min-width: 64rem) {
+  .trustPanel {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: center;
+    gap: var(--space-12);
+    padding: var(--space-12);
+  }
+}
+
+.trustIntro .textLink {
+  margin-top: var(--space-4);
+}
+
+.trust {
+  display: grid;
+  gap: var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 40rem) {
+  .trust {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.trust li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.trust svg {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--color-brand);
+}
+
+.trust h3 {
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+}
+
+.trust p {
+  margin-top: var(--space-1);
+  line-height: var(--leading-snug);
+  color: var(--color-text-muted);
+}
+
+/* =================================================== suporte + perguntas */
+
+.help {
+  display: grid;
+  gap: var(--space-10);
+}
+
+@media (min-width: 64rem) {
+  .help {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    align-items: start;
+    gap: var(--space-12);
+  }
+
+  /* A coluna do suporte acompanha a leitura das perguntas. */
+  .helpAside {
+    position: sticky;
+    top: 6rem;
+  }
+}
+
+.helpPhoto {
+  margin-top: var(--space-6);
+}
+
+.helpPhoto img {
+  aspect-ratio: 16 / 9;
+  object-position: 70% 30%;
+}
+
+.helpList {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  list-style: none;
+  font-weight: var(--weight-medium);
+}
+
+.helpList li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.helpList svg {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--color-brand);
+}
+
+.helpActions {
+  margin-top: var(--space-6);
+  gap: var(--space-2) var(--space-5);
+}
+
+/* ====================================================== chamada final */
+
+/* Foto ao fundo com véu escuro: texto claro com contraste alto nos dois temas. */
+.cta {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin-block: var(--space-8) var(--space-16);
+  padding: var(--space-12) var(--space-6);
+  border-radius: var(--radius-xl);
+  color: var(--slate-50);
+  text-align: center;
+}
+
+@media (min-width: 40rem) {
+  .cta {
+    padding: var(--space-16) var(--space-10);
+  }
+}
+
+.cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    115deg,
+    color-mix(in srgb, var(--graphite-950) 92%, transparent) 20%,
+    color-mix(in srgb, var(--graphite-950) 60%, transparent)
+  );
+}
+
+.ctaBg {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ctaContent {
+  max-width: 42rem;
+  margin-inline: auto;
+}
+
+.ctaTitle {
+  font-size: clamp(1.75rem, 1.2rem + 2.4vw, 3rem);
+  font-weight: var(--weight-extrabold);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.ctaText {
+  margin: var(--space-4) auto var(--space-8);
+  font-size: var(--text-lg);
+  line-height: var(--leading-normal);
+  color: var(--slate-100);
+}
+
+.ctaActions {
+  justify-content: center;
+}
