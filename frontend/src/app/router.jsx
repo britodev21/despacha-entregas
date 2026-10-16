@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { createBrowserRouter } from "react-router";
 
+import { RootRoute } from "@/app/RootRoute";
 import { RequireAuth, RequirePermission } from "@/auth/guards";
 import { PERMISSIONS } from "@/auth/permissions";
 import { FullPageLoader } from "@/components/ui/FullPageLoader/FullPageLoader";
@@ -52,14 +53,23 @@ const withSuspense = (element) => (
 
 export const router = createBrowserRouter([
   {
+    element: <RootRoute />,
     errorElement: <RouteErrorPage />,
     children: [
-      { path: "/login", element: <LoginPage /> },
+      { path: "/login", element: <LoginPage />, handle: { title: "Entrar" } },
       // "/": apresentação para visitantes; quem tem sessão vai para a sua área.
-      { index: true, element: <HomeRoute /> },
+      { index: true, element: <HomeRoute />, handle: { title: "Gestão de entregas" } },
       // Páginas públicas sob demanda (fora dos layouts, então com Suspense próprio).
-      { path: "/suporte", element: withSuspense(<SupportPage />) },
-      { path: "/privacidade", element: withSuspense(<PrivacyPage />) },
+      {
+        path: "/suporte",
+        element: withSuspense(<SupportPage />),
+        handle: { title: "Central de ajuda" },
+      },
+      {
+        path: "/privacidade",
+        element: withSuspense(<PrivacyPage />),
+        handle: { title: "Privacidade" },
+      },
       {
         element: <RequireAuth />,
         children: [
@@ -71,9 +81,10 @@ export const router = createBrowserRouter([
               </RequirePermission>
             ),
             children: [
-              { path: "painel", element: <DashboardPage /> },
+              { path: "painel", element: <DashboardPage />, handle: { title: "Painel" } },
               {
                 path: "entregas",
+                handle: { title: "Operação" },
                 element: (
                   <RequirePermission permission={PERMISSIONS.DELIVERIES_MANAGE}>
                     <OperationsPage />
@@ -82,6 +93,7 @@ export const router = createBrowserRouter([
               },
               {
                 path: "historico",
+                handle: { title: "Histórico" },
                 element: (
                   <RequirePermission permission={PERMISSIONS.DELIVERIES_MANAGE}>
                     <HistoryPage />
@@ -90,6 +102,7 @@ export const router = createBrowserRouter([
               },
               {
                 path: "mapa",
+                handle: { title: "Mapa" },
                 element: (
                   <RequirePermission permission={PERMISSIONS.TRACKING_READ}>
                     <LazyTrackingPage />
@@ -100,12 +113,17 @@ export const router = createBrowserRouter([
                 path: "clientes",
                 element: <RequirePermission permission={PERMISSIONS.CLIENTS_MANAGE} />,
                 children: [
-                  { index: true, element: <ClientsPage /> },
-                  { path: ":clientId", element: <ClientDetailPage /> },
+                  { index: true, element: <ClientsPage />, handle: { title: "Clientes" } },
+                  {
+                    path: ":clientId",
+                    element: <ClientDetailPage />,
+                    handle: { title: "Cliente" },
+                  },
                 ],
               },
               {
                 path: "auditoria",
+                handle: { title: "Auditoria" },
                 element: (
                   <RequirePermission permission={PERMISSIONS.AUDIT_READ}>
                     <AuditPage />
@@ -114,6 +132,7 @@ export const router = createBrowserRouter([
               },
               {
                 path: "configuracoes",
+                handle: { title: "Configurações" },
                 element: (
                   <RequirePermission permission={PERMISSIONS.SETTINGS_MANAGE}>
                     <SettingsPage />
@@ -122,6 +141,7 @@ export const router = createBrowserRouter([
               },
               {
                 path: "usuarios",
+                handle: { title: "Usuários" },
                 element: (
                   <RequirePermission permission={PERMISSIONS.USERS_MANAGE}>
                     <UsersPage />
@@ -139,8 +159,12 @@ export const router = createBrowserRouter([
               </RequirePermission>
             ),
             children: [
-              { index: true, element: <DelivererHomePage /> },
-              { path: "entregas/:deliveryId", element: <DelivererDeliveryPage /> },
+              { index: true, element: <DelivererHomePage />, handle: { title: "Minhas entregas" } },
+              {
+                path: "entregas/:deliveryId",
+                element: <DelivererDeliveryPage />,
+                handle: { title: "Entrega" },
+              },
             ],
           },
         ],

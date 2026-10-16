@@ -3,9 +3,23 @@
   min-height: 100dvh;
 }
 
+/* Sidebar aberta (15rem) ou recolhida em trilho (4.25rem: o ícone fica no
+   mesmo lugar nos dois estados, só a "cortina" fecha sobre os rótulos). */
 @media (min-width: 64rem) {
   .shell {
     grid-template-columns: 15rem minmax(0, 1fr);
+  }
+
+  .shellCollapsed {
+    grid-template-columns: 4.25rem minmax(0, 1fr);
+  }
+}
+
+/* Anima a coluna (ação pontual do usuário; mostra a mudança de estado).
+   Com "reduzir movimento", a troca é instantânea. */
+@media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
+  .shell {
+    transition: grid-template-columns 220ms var(--ease-standard);
   }
 }
 
@@ -43,6 +57,13 @@
     padding: var(--space-5) var(--space-3);
     border-right: 1px solid var(--color-border);
     background-color: var(--color-surface);
+    /* Acima do conteúdo: os balões do modo recolhido passam por cima dele. */
+    z-index: calc(var(--z-sticky) + 1);
+  }
+
+  /* Aberta (e abrindo): a borda corta logo e rótulos, efeito cortina. */
+  .sidebar:not([data-collapsed]) {
+    overflow-x: clip;
   }
 }
 
@@ -56,10 +77,13 @@
   gap: var(--space-1);
 }
 
-.navLink {
+.navLink,
+.collapseButton {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  white-space: nowrap;
   min-height: 2.75rem;
   padding: 0 var(--space-3);
   border-radius: var(--radius-md);
@@ -72,15 +96,75 @@
     color var(--duration-fast) var(--ease-standard);
 }
 
-.navLink > svg {
+.navLink > svg,
+.collapseButton > svg {
   width: 1.25rem;
   height: 1.25rem;
   flex-shrink: 0;
 }
 
-.navLink:hover {
+.navLink:hover,
+.collapseButton:hover {
   background-color: var(--color-surface-hover);
   color: var(--color-text);
+}
+
+.collapseButton {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+
+.sidebarFooter {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: auto;
+}
+
+.sidebarFooter .company {
+  margin-top: 0;
+}
+
+/* ---------- Sidebar recolhida (trilho de ícones) ---------- */
+
+@media (min-width: 64rem) {
+  /* O rótulo vira balão ao lado do ícone (hover e foco do teclado) e continua
+     no DOM como nome acessível do link. */
+  .sidebar[data-collapsed] .navLabel {
+    position: absolute;
+    top: 50%;
+    left: calc(100% + var(--space-3));
+    z-index: 1;
+    padding: var(--space-1-5) var(--space-3);
+    border-radius: var(--radius-md);
+    background-color: var(--color-text);
+    color: var(--color-text-inverse);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    box-shadow: var(--shadow-md);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-4px, -50%);
+    transition:
+      opacity var(--duration-fast) var(--ease-standard),
+      transform var(--duration-fast) var(--ease-standard);
+  }
+
+  .sidebar[data-collapsed] .navLink:hover .navLabel,
+  .sidebar[data-collapsed] .navLink:focus-visible .navLabel,
+  .sidebar[data-collapsed] .collapseButton:hover .navLabel,
+  .sidebar[data-collapsed] .collapseButton:focus-visible .navLabel {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+
+  .sidebar[data-collapsed] .company {
+    display: none;
+  }
 }
 
 /* Item ativo: azul claro da identidade, com barra lateral (não só cor). */
@@ -183,9 +267,20 @@
 /* ---------- Área principal ---------- */
 
 .main {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+
+/* Marcador invisível do topo: quando sai da tela, o título compacto aparece. */
+.titleSentinel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 8rem;
+  pointer-events: none;
 }
 
 .topbar {
@@ -200,6 +295,55 @@
   border-bottom: 1px solid var(--color-border);
   background-color: color-mix(in srgb, var(--color-bg) 85%, transparent);
   backdrop-filter: blur(8px);
+}
+
+/* Marca e título da tela ocupam o mesmo lugar e se alternam (cross-fade):
+   no topo da página, a marca (no desktop ela já está na sidebar); depois de
+   rolar para longe do título grande, o nome da tela. */
+.topbarContext {
+  display: grid;
+  align-items: center;
+  min-width: 0;
+}
+
+.topbarContext > * {
+  grid-area: 1 / 1;
+}
+
+.topbarTitle {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.topbarContext[data-scrolled] .topbarTitle {
+  opacity: 1;
+  transform: none;
+}
+
+.topbarContext[data-scrolled] .topbarLogo {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+@media (min-width: 64rem) {
+  .topbarTitle {
+    font-size: var(--text-lg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .topbarTitle,
+  .topbarLogo {
+    transition:
+      opacity var(--duration-base) var(--ease-standard),
+      transform var(--duration-base) var(--ease-standard);
+  }
 }
 
 .topbarActions {
