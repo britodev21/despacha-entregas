@@ -195,6 +195,12 @@
   --color-panel-accent: var(--sky-300);
 
   --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.06);
+  /* Cartões sobre superfície rebaixada (ex.: colunas da Operação): contorno
+     firme + sombra curta tingida, para o cartão "assentar" na coluna. */
+  --color-border-card: var(--slate-300);
+  /* Raias de quadro (Operação): um tom abaixo da página, para conter os cartões. */
+  --color-surface-lane: color-mix(in srgb, var(--slate-100) 50%, var(--slate-200));
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.08), 0 2px 6px -2px rgb(15 23 42 / 0.08);
   --shadow-md: 0 2px 4px rgb(15 23 42 / 0.04), 0 6px 16px rgb(15 23 42 / 0.06);
   --shadow-lg: 0 8px 24px rgb(15 23 42 / 0.1), 0 2px 6px rgb(15 23 42 / 0.05);
   --color-overlay: rgb(15 23 42 / 0.45);
@@ -266,6 +272,9 @@
   --color-panel-accent: var(--sky-300);
 
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --color-border-card: var(--color-border);
+  --color-surface-lane: var(--color-surface-sunken);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
   --shadow-md: 0 4px 12px rgb(0 0 0 / 0.45);
   --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.55);
   --color-overlay: rgb(0 0 0 / 0.6);

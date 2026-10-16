@@ -43,8 +43,11 @@
   gap: var(--space-2);
   min-height: 12rem;
   padding: var(--space-3);
+  /* Raia com contorno: no tema claro o fundo rebaixado sozinho quase some
+     contra a página, e os cartões pareciam soltos. */
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  background-color: var(--color-surface-sunken);
+  background-color: var(--color-surface-lane);
   scroll-snap-align: start;
 }
 
@@ -119,25 +122,34 @@
   gap: var(--space-1-5);
   width: 100%;
   padding: var(--space-3);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-card);
   border-radius: var(--radius-md);
   background-color: var(--color-surface);
   color: var(--color-text);
   text-align: left;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
   transition:
     border-color var(--duration-fast) var(--ease-standard),
     box-shadow var(--duration-fast) var(--ease-standard),
     transform var(--duration-fast) var(--ease-standard);
 }
 
+/* Hover: o cartão "levanta" um pouco (é clicável e abre o detalhe). */
 .card:hover {
   border-color: var(--color-border-strong);
   box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .card:active {
-  transform: translateY(1px);
+  box-shadow: var(--shadow-card);
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card:hover {
+    transform: none;
+  }
 }
 
 /* Atrasada: borda lateral de alerta + selo "Atrasada" (não só cor). */
