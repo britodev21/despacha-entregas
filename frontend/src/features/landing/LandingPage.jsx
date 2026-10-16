@@ -1,300 +1,416 @@
-import {
-  Camera,
-  Check,
-  ClipboardList,
-  FileCheck2,
-  LockKeyhole,
-  MapPinned,
-  MessageCircle,
-  ShieldCheck,
-  UserCheck,
-  UsersRound,
-} from "lucide-react";
+import { ArrowRight, BookOpen, Check, CircleCheck, Headset, Navigation, X } from "lucide-react";
+import { useRef } from "react";
 import { Link } from "react-router";
 
-import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/Button/Button";
+import { PublicLayout } from "@/layouts/PublicLayout";
+import { cx } from "@/lib/cx";
+import { useReveal } from "@/lib/useReveal";
 
 import entregadorImg from "./assets/entregador.webp";
+import garupaImg from "./assets/fotos/garupa.webp";
+import scooterImg from "./assets/fotos/scooter-noite.webp";
+import suporteImg from "./assets/fotos/suporte.webp";
 import mapaImg from "./assets/mapa.webp";
 import operacaoImg from "./assets/operacao.webp";
-import painelImg from "./assets/painel.webp";
 import { CONTACT_URL } from "./contact";
+import {
+  AUDIENCE,
+  GAINS,
+  HOME_FAQ,
+  PAINS,
+  SEGMENTS,
+  SMALL_FEATURES,
+  STATS,
+  STEPS,
+  TRUST,
+} from "./content";
+import { DemoButton, SupportButton } from "./DemoButton";
+import { FaqList } from "./FaqList";
 import styles from "./landing.module.css";
-
-const YEAR = new Date().getFullYear();
-
-const STEPS = [
-  {
-    Icon: ClipboardList,
-    title: "Cadastrar",
-    text: "Cliente e endereço em segundos. O CEP preenche a rua sozinho.",
-  },
-  {
-    Icon: UserCheck,
-    title: "Distribuir",
-    text: "Escolha o entregador com um toque. Ele vê a entrega na hora, no celular.",
-  },
-  {
-    Icon: MapPinned,
-    title: "Acompanhar",
-    text: "Veja no mapa quem está em rota e o que precisa da sua atenção.",
-  },
-  {
-    Icon: Camera,
-    title: "Finalizar",
-    text: "Foto e assinatura de quem recebeu viram o comprovante da entrega.",
-  },
-];
-
-const FEATURES = [
-  {
-    eyebrow: "Painel do dia",
-    title: "Saiba como está o dia sem perguntar a ninguém",
-    text: "Quantas entregas saíram, quantas faltam e quais tiveram problema — atualizado sozinho, numa tela só.",
-    bullets: ["Ocorrências sempre em destaque", "Histórico e relatório por entregador"],
-    image: {
-      src: painelImg,
-      width: 1120,
-      height: 240,
-      alt: "Painel do DESPACHA com entregas do dia, pendentes, atribuídas e em rota",
-    },
-  },
-  {
-    eyebrow: "Mapa ao vivo",
-    title: "Chega de perguntar “cadê o motoboy?”",
-    text: "Acompanhe cada entregador enquanto ele faz a entrega. Fora da rota, a localização não é coletada.",
-    bullets: ["Atualiza a cada 15 segundos", "Privacidade do entregador respeitada"],
-    image: {
-      src: mapaImg,
-      width: 1200,
-      height: 750,
-      alt: "Mapa com a posição de três entregadores em rota e a entrega de cada um",
-    },
-  },
-  {
-    eyebrow: "No celular do entregador",
-    title: "Tudo o que ele precisa, sem instalar nada",
-    text: "Endereço, um toque para abrir no Google Maps ou Waze, quanto cobrar e o troco já calculado. No fim, foto e assinatura.",
-    bullets: ["Funciona no navegador do celular", "Botões grandes, feitos para a rua"],
-    image: {
-      src: entregadorImg,
-      width: 780,
-      height: 1688,
-      alt: "Tela do entregador com endereço, botões de navegação, valor a cobrar e botão de finalizar",
-      phone: true,
-    },
-  },
-];
-
-const TRUST = [
-  { Icon: UsersRound, text: "Cada empresa vê só os próprios dados" },
-  { Icon: LockKeyhole, text: "Acesso por perfil: administrador, operador e entregador" },
-  { Icon: FileCheck2, text: "Comprovante com foto, assinatura e horário" },
-  { Icon: ShieldCheck, text: "LGPD: localização só durante a entrega, apagada em 30 dias" },
-];
-
-function DemoButton({ size = "lg", className }) {
-  if (!CONTACT_URL) return null;
-  return (
-    <Button
-      as="a"
-      href={CONTACT_URL}
-      target="_blank"
-      rel="noopener noreferrer"
-      size={size}
-      className={className}
-    >
-      <MessageCircle aria-hidden="true" />
-      Agendar demonstração
-      <span className="sr-only"> (abre o WhatsApp)</span>
-    </Button>
-  );
-}
 
 /** Apresentação pública do DESPACHA (raiz do site, para visitantes). */
 export function LandingPage() {
+  const pageRef = useRef(null);
+  useReveal(pageRef);
+
   return (
-    <div className={styles.page}>
-      <a href="#conteudo" className="sr-only">
-        Pular para o conteúdo
-      </a>
-
-      <header className={styles.header}>
-        <div className={styles.headerInner}>
-          <Logo size="sm" />
-          <nav className={styles.headerNav} aria-label="Acesso">
-            <Button as={Link} to="/login" variant="ghost">
-              Entrar
-            </Button>
-            <DemoButton size="md" className={styles.headerDemo} />
-          </nav>
-        </div>
-      </header>
-
-      <main id="conteudo">
-        {/* ------------------------------------------------------------ hero */}
+    <PublicLayout>
+      <div ref={pageRef}>
+        {/* ============================================================ hero */}
         <section className={styles.hero} aria-labelledby="hero-title">
-          <div className={styles.heroText}>
-            <p className={styles.eyebrow}>Gestão de entregas para pequenos negócios</p>
-            <h1 id="hero-title" className={styles.heroTitle}>
-              Saiba onde está cada entrega, do pedido à porta do cliente.
-            </h1>
-            <p className={styles.lead}>
-              O DESPACHA organiza seus entregadores, mostra o mapa ao vivo e guarda o comprovante de
-              cada entrega. Funciona no navegador do celular — sem instalar nada.
-            </p>
-            <div className={styles.heroActions}>
-              <DemoButton />
-              <Button as={Link} to="/login" variant="secondary" size="lg">
-                Já sou cliente
-              </Button>
-            </div>
-            <ul className={styles.heroChecks}>
-              {["Sem instalar aplicativo", "Comece no mesmo dia", "Dados protegidos (LGPD)"].map(
-                (item) => (
-                  <li key={item}>
-                    <Check aria-hidden="true" />
-                    {item}
-                  </li>
-                ),
-              )}
-            </ul>
-          </div>
-
-          <div className={styles.heroVisual}>
-            <figure className={styles.browser}>
-              <div className={styles.browserBar} aria-hidden="true">
-                <span />
-                <span />
-                <span />
+          <div className={styles.heroGlow} aria-hidden="true" />
+          <div className={styles.heroInner}>
+            <div className={styles.heroText}>
+              <p className={styles.badge}>Gestão de entregas para pequenos negócios</p>
+              <h1 id="hero-title" className={styles.heroTitle}>
+                Saiba onde está <mark className={styles.highlight}>cada entrega</mark>.
+              </h1>
+              <p className={styles.lead}>
+                Organize seus entregadores, acompanhe o mapa ao vivo e guarde o comprovante. Tudo
+                pelo navegador, sem instalar nada.
+              </p>
+              <div className={styles.heroActions}>
+                <DemoButton />
+                <Button as={Link} to="/#como-funciona" variant="secondary" size="lg">
+                  Ver como funciona
+                  <ArrowRight aria-hidden="true" />
+                </Button>
               </div>
-              <img
-                src={operacaoImg}
-                width="1440"
-                height="900"
-                alt="Quadro de operação do DESPACHA com entregas pendentes, atribuídas, em rota e com ocorrência"
-                fetchPriority="high"
-              />
-            </figure>
-            <figure className={styles.heroPhone}>
-              <img
-                src={entregadorImg}
-                width="780"
-                height="1688"
-                alt="A mesma entrega no celular do entregador"
-                decoding="async"
-              />
-            </figure>
+            </div>
+
+            <div className={styles.heroVisual}>
+              <figure className={styles.browser}>
+                <div className={styles.browserBar} aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                  <p className={styles.browserUrl}>Operação</p>
+                </div>
+                <img
+                  src={operacaoImg}
+                  width="1440"
+                  height="900"
+                  alt="Quadro de operação do DESPACHA com entregas pendentes, atribuídas, em rota e com ocorrência"
+                  fetchPriority="high"
+                />
+              </figure>
+              <figure className={styles.heroPhone}>
+                <img
+                  src={entregadorImg}
+                  width="780"
+                  height="1688"
+                  alt="A mesma entrega no celular do entregador, com botão para finalizar"
+                  decoding="async"
+                />
+              </figure>
+              {/* Cartões ilustrativos do que o sistema mostra (decorativos). */}
+              <div className={cx(styles.floatCard, styles.floatTop)} aria-hidden="true">
+                <span className={cx(styles.floatIcon, styles.floatSuccess)}>
+                  <CircleCheck />
+                </span>
+                <span>
+                  <strong>Entrega #3 concluída</strong>
+                  <small>Foto e assinatura salvas</small>
+                </span>
+              </div>
+              <div className={cx(styles.floatCard, styles.floatBottom)} aria-hidden="true">
+                <span className={cx(styles.floatIcon, styles.floatRoute)}>
+                  <Navigation />
+                </span>
+                <span>
+                  <strong>Carla está em rota</strong>
+                  <small>Posição atualizada há 15 s</small>
+                </span>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* -------------------------------------------------- como funciona */}
-        <section className={styles.section} aria-labelledby="passos-title">
-          <div className={styles.sectionHead}>
-            <p className={styles.eyebrow}>Como funciona</p>
-            <h2 id="passos-title" className={styles.sectionTitle}>
-              Do pedido à entrega em 4 passos
-            </h2>
+        {/* ======================================================= segmentos */}
+        <section className={styles.segments} aria-label="Ramos atendidos">
+          <p>Para quem entrega todo dia:</p>
+          <ul>
+            {SEGMENTS.map((segment) => (
+              <li key={segment}>{segment}</li>
+            ))}
+          </ul>
+        </section>
+
+        {/* ===================================================== antes/depois */}
+        <section className={styles.section} aria-labelledby="problema-title">
+          <div className={styles.compare}>
+            <figure className={styles.comparePhoto} data-reveal>
+              <img
+                src={garupaImg}
+                width="1200"
+                height="800"
+                alt="Entregador de scooter com caixa de entregas na garupa, em movimento pela cidade"
+                loading="lazy"
+                decoding="async"
+              />
+            </figure>
+            <div data-reveal>
+              <h2 id="problema-title" className={styles.sectionTitle}>
+                Entregar bem não precisa ser no grito
+              </h2>
+              <p className={styles.sectionText}>
+                Troque o vai e vem de mensagens por um quadro que mostra tudo.
+              </p>
+              <div className={styles.compareCols}>
+                <div className={styles.compareCard}>
+                  <h3>Sem o DESPACHA</h3>
+                  <ul>
+                    {PAINS.map((item) => (
+                      <li key={item}>
+                        <X aria-hidden="true" className={styles.iconBad} />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className={cx(styles.compareCard, styles.compareGood)}>
+                  <h3>Com o DESPACHA</h3>
+                  <ul>
+                    {GAINS.map((item) => (
+                      <li key={item}>
+                        <Check aria-hidden="true" className={styles.iconGood} />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
-          <ol className={styles.steps}>
-            {STEPS.map(({ Icon, title, text }, index) => (
-              <li key={title} className={styles.step}>
-                <span className={styles.stepIcon} aria-hidden="true">
+        </section>
+
+        {/* ============================================ como funciona (timeline) */}
+        <section
+          id="como-funciona"
+          className={cx(styles.section, styles.anchor)}
+          aria-labelledby="passos-title"
+        >
+          <div className={styles.sectionHead} data-reveal>
+            <h2 id="passos-title" className={styles.sectionTitle}>
+              Do pedido à porta em 4 passos
+            </h2>
+            <p className={styles.sectionText}>Se a sua equipe usa WhatsApp, ela usa o DESPACHA.</p>
+          </div>
+          <ol className={styles.timeline}>
+            {STEPS.map(({ Icon, title, text }) => (
+              <li key={title} className={styles.timelineItem} data-reveal>
+                <span className={styles.timelineIcon} aria-hidden="true">
                   <Icon />
                 </span>
-                <h3 className={styles.stepTitle}>
-                  <span className={styles.stepNumber}>{index + 1}.</span> {title}
-                </h3>
+                <h3>{title}</h3>
                 <p>{text}</p>
               </li>
             ))}
           </ol>
         </section>
 
-        {/* ------------------------------------------------------ benefícios */}
-        <section className={styles.section} aria-label="O que o DESPACHA faz por você">
-          <div className={styles.features}>
-            {FEATURES.map(({ eyebrow, title, text, bullets, image }, index) => (
+        {/* ============================================= funcionalidades (bento) */}
+        <section
+          id="funcionalidades"
+          className={cx(styles.section, styles.anchor)}
+          aria-labelledby="func-title"
+        >
+          <div className={styles.sectionHead} data-reveal>
+            <p className={styles.eyebrow}>Funcionalidades</p>
+            <h2 id="func-title" className={styles.sectionTitle}>
+              Tudo o que a sua entrega precisa, num lugar só
+            </h2>
+          </div>
+          <div className={styles.bento}>
+            <article className={cx(styles.tile, styles.tileWide, styles.tileBrand)} data-reveal>
+              <div className={styles.tileText}>
+                <h3>Quadro da operação</h3>
+                <p>Pendentes, em rota e ocorrências em colunas que se atualizam sozinhas.</p>
+              </div>
+              <div className={styles.tileShot}>
+                <img
+                  src={operacaoImg}
+                  width="1440"
+                  height="900"
+                  alt="Quadro da operação com as entregas organizadas por status"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            </article>
+            <article className={cx(styles.tile, styles.tileTall, styles.tileDark)} data-reveal>
+              <div className={styles.tileText}>
+                <h3>No celular do entregador</h3>
+                <p>Endereço, Maps ou Waze com um toque e botões grandes, feitos para a rua.</p>
+              </div>
+              <div className={styles.tilePhone}>
+                <img
+                  src={entregadorImg}
+                  width="780"
+                  height="1688"
+                  alt="Tela do entregador com endereço, valor a cobrar e botão de finalizar"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            </article>
+            <article className={cx(styles.tile, styles.tileWide)} data-reveal>
+              <div className={styles.tileText}>
+                <h3>Mapa ao vivo</h3>
+                <p>Quem está em rota e onde, a cada 15 segundos. Fora da rota, nada é coletado.</p>
+              </div>
+              <div className={styles.tileShot}>
+                <img
+                  src={mapaImg}
+                  width="1200"
+                  height="750"
+                  alt="Mapa com a posição de três entregadores em rota"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            </article>
+            {SMALL_FEATURES.map(({ Icon, title, text, tone }) => (
               <article
-                key={eyebrow}
-                className={index % 2 === 1 ? `${styles.feature} ${styles.reverse}` : styles.feature}
+                key={title}
+                className={cx(
+                  styles.tileSmall,
+                  tone === "success" && styles.toneSuccess,
+                  tone === "accent" && styles.toneAccent,
+                )}
+                data-reveal
               >
-                <div className={styles.featureText}>
-                  <p className={styles.eyebrow}>{eyebrow}</p>
-                  <h3 className={styles.featureTitle}>{title}</h3>
-                  <p className={styles.featureLead}>{text}</p>
-                  <ul className={styles.bullets}>
-                    {bullets.map((bullet) => (
-                      <li key={bullet}>
-                        <Check aria-hidden="true" />
-                        {bullet}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <figure className={image.phone ? styles.featurePhone : styles.featureShot}>
-                  <img
-                    src={image.src}
-                    width={image.width}
-                    height={image.height}
-                    alt={image.alt}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </figure>
+                <span className={styles.tileIcon} aria-hidden="true">
+                  <Icon />
+                </span>
+                <h3>{title}</h3>
+                <p>{text}</p>
               </article>
             ))}
           </div>
         </section>
 
-        {/* ------------------------------------------------------- confiança */}
-        <section className={styles.section} aria-labelledby="seguranca-title">
-          <div className={styles.sectionHead}>
-            <p className={styles.eyebrow}>Segurança</p>
-            <h2 id="seguranca-title" className={styles.sectionTitle}>
-              Seus dados e os dos seus clientes, protegidos
-            </h2>
-          </div>
-          <ul className={styles.trust}>
-            {TRUST.map(({ Icon, text }) => (
-              <li key={text}>
-                <Icon aria-hidden="true" />
-                <span>{text}</span>
+        {/* ========================================================= números */}
+        <section className={styles.stats} aria-label="O DESPACHA em números">
+          <ul>
+            {STATS.map(({ value, label }) => (
+              <li key={label} data-reveal>
+                <strong>{value}</strong>
+                <span>{label}</span>
               </li>
             ))}
           </ul>
         </section>
 
-        {/* ------------------------------------------------- chamada final */}
-        <section className={styles.cta} aria-labelledby="cta-title">
-          <h2 id="cta-title" className={styles.ctaTitle}>
-            Quer ver funcionando com as suas entregas?
-          </h2>
-          <p className={styles.ctaText}>
-            {CONTACT_URL
-              ? "Uma conversa de 15 minutos pelo WhatsApp, com o sistema rodando."
-              : "Já tem acesso? Entre e comece agora."}
-          </p>
-          <div className={styles.ctaActions}>
-            {CONTACT_URL ? (
-              <DemoButton />
-            ) : (
-              <Button as={Link} to="/login" size="lg">
-                Entrar
-              </Button>
-            )}
+        {/* ======================================== para quem é (assimétrico) */}
+        <section
+          id="segmentos"
+          className={cx(styles.section, styles.anchor)}
+          aria-labelledby="seg-title"
+        >
+          <div className={styles.sectionHead} data-reveal>
+            <h2 id="seg-title" className={styles.sectionTitle}>
+              Do balcão à porta, em qualquer ramo
+            </h2>
+            <p className={styles.sectionText}>
+              Tem entregadores próprios? O DESPACHA organiza o caminho de cada pedido.
+            </p>
+          </div>
+          <div className={styles.audience}>
+            {AUDIENCE.map(({ title, text, image, width, height, alt }, index) => (
+              <article
+                key={title}
+                className={cx(styles.audienceCard, index === 0 && styles.audienceMain)}
+                data-reveal
+              >
+                <img
+                  src={image}
+                  width={width}
+                  height={height}
+                  alt={alt}
+                  loading="lazy"
+                  decoding="async"
+                />
+                <div className={styles.audienceText}>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
-      </main>
 
-      <footer className={styles.footer}>
-        <Logo size="sm" />
-        <p>© {YEAR} DESPACHA · Gestão de entregas simples para pequenos negócios</p>
-        <Link to="/login" className={styles.footerLink}>
-          Entrar
-        </Link>
-      </footer>
-    </div>
+        {/* ======================================================= segurança */}
+        <section className={styles.section} aria-labelledby="seguranca-title">
+          <div className={styles.trustPanel} data-reveal>
+            <div className={styles.trustIntro}>
+              <p className={styles.eyebrow}>Segurança</p>
+              <h2 id="seguranca-title" className={styles.sectionTitle}>
+                Seus dados e os dos seus clientes, protegidos
+              </h2>
+              <Link to="/privacidade" className={styles.textLink}>
+                Como tratamos os dados (LGPD) <ArrowRight aria-hidden="true" />
+              </Link>
+            </div>
+            <ul className={styles.trust}>
+              {TRUST.map(({ Icon, title, text }) => (
+                <li key={title}>
+                  <Icon aria-hidden="true" />
+                  <div>
+                    <h3>{title}</h3>
+                    <p>{text}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* ================================================ suporte + perguntas */}
+        <section id="faq" className={cx(styles.section, styles.anchor)} aria-labelledby="faq-title">
+          <div className={styles.help}>
+            <aside className={styles.helpAside} data-reveal>
+              <h2 id="faq-title" className={styles.sectionTitle}>
+                Dúvidas? A gente responde.
+              </h2>
+              <p className={styles.sectionText}>
+                Suporte de gente de verdade, em português, do primeiro cadastro ao dia a dia.
+              </p>
+              <figure className={styles.helpPhoto}>
+                <img
+                  src={suporteImg}
+                  width="1000"
+                  height="821"
+                  alt="Atendente de suporte com headset sorrindo em frente ao computador"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+              <ul className={styles.helpList}>
+                <li>
+                  <Headset aria-hidden="true" />
+                  Ajuda para cadastrar a equipe no começo
+                </li>
+                <li>
+                  <BookOpen aria-hidden="true" />
+                  Central de ajuda com guias para cada perfil
+                </li>
+              </ul>
+              <div className={styles.helpActions}>
+                <SupportButton variant="secondary" />
+                <Link to="/suporte" className={styles.textLink}>
+                  Abrir a Central de ajuda <ArrowRight aria-hidden="true" />
+                </Link>
+              </div>
+            </aside>
+            <div className={styles.helpFaq} data-reveal>
+              <FaqList items={HOME_FAQ} />
+            </div>
+          </div>
+        </section>
+
+        {/* =================================================== chamada final */}
+        <section className={styles.cta} aria-labelledby="cta-title" data-reveal>
+          <img src={scooterImg} alt="" loading="lazy" decoding="async" className={styles.ctaBg} />
+          <div className={styles.ctaContent}>
+            <h2 id="cta-title" className={styles.ctaTitle}>
+              Pronto para entregar com mais controle?
+            </h2>
+            <p className={styles.ctaText}>
+              {CONTACT_URL
+                ? "Em 15 minutos pelo WhatsApp você vê o DESPACHA rodando com o seu jeito de entregar."
+                : "Já tem acesso? Entre e comece agora."}
+            </p>
+            <div className={styles.ctaActions}>
+              <DemoButton />
+              <Button as={Link} to="/login" variant="secondary" size="lg">
+                Entrar
+              </Button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </PublicLayout>
   );
 }
