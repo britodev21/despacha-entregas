@@ -27,7 +27,10 @@ const TILE_ATTRIBUTION =
   import.meta.env.VITE_MAP_ATTRIBUTION ||
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 
-const BRAZIL_CENTER = [-14.235, -51.925];
+// Enquadramento inicial antes de haver entregadores no mapa: Campo Grande (MS),
+// onde a operação começa. Com entregadores em rota, o mapa se ajusta a eles.
+const DEFAULT_CENTER = [-20.4697, -54.6201];
+const DEFAULT_ZOOM = 12;
 const STALE_AFTER_MS = 5 * 60 * 1000; // sem sinal há mais de 5 min
 const REFRESH_MS = 15_000;
 
@@ -107,7 +110,12 @@ export function TrackingPage() {
 
       <div className={styles.layout}>
         <div className={styles.mapWrap}>
-          <MapContainer center={BRAZIL_CENTER} zoom={4} className={styles.map} scrollWheelZoom>
+          <MapContainer
+            center={DEFAULT_CENTER}
+            zoom={DEFAULT_ZOOM}
+            className={styles.map}
+            scrollWheelZoom
+          >
             {/* A página usa Referrer-Policy no-referrer, mas o OSM exige Referer nos tiles:
                 só aqui enviamos a origem (sem caminho, logo sem IDs de entrega). */}
             <TileLayer
