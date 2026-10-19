@@ -1,5 +1,5 @@
 import { ChevronDown, KeyRound, LogOut, MonitorSmartphone } from "lucide-react";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { useAuth } from "@/auth/AuthContext";
 import { ROLE_LABELS } from "@/auth/permissions";
@@ -21,20 +21,47 @@ function initials(name) {
  * fechar ao clicar fora, fechar com Esc e camada por cima de tudo vêm de graça,
  * sem bibliotecas nem listeners manuais.
  */
+// Celulares antigos (iOS 16 ou anterior, Chrome antes da versão 114) não têm a
+// Popover API: lá o menu abre e fecha por estado do React.
+const SUPPORTS_POPOVER =
+  typeof HTMLElement !== "undefined" && Object.hasOwn(HTMLElement.prototype, "popover");
+
 export function UserMenu({ compact = false, themeInMenu = false }) {
   const { user, logout, logoutAll } = useAuth();
   const menuId = useId();
   const [leaving, setLeaving] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [confirmAll, setConfirmAll] = useState(false);
+  const [fallbackOpen, setFallbackOpen] = useState(false);
+  const wrapperRef = useRef(null);
+
+  // Sem Popover API: fecha ao tocar fora e com Esc (o que o popover faz sozinho).
+  useEffect(() => {
+    if (SUPPORTS_POPOVER || !fallbackOpen) return undefined;
+    const onPointerDown = (event) => {
+      if (!wrapperRef.current?.contains(event.target)) setFallbackOpen(false);
+    };
+    const onKeyDown = (event) => event.key === "Escape" && setFallbackOpen(false);
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [fallbackOpen]);
+
+  const closeMenu = () => {
+    document.getElementById(menuId)?.hidePopover?.();
+    setFallbackOpen(false);
+  };
 
   const openChangePassword = () => {
-    document.getElementById(menuId)?.hidePopover();
+    closeMenu();
     setChangingPassword(true);
   };
 
   const openLogoutAll = () => {
-    document.getElementById(menuId)?.hidePopover();
+    closeMenu();
     setConfirmAll(true);
   };
 
@@ -49,10 +76,13 @@ export function UserMenu({ compact = false, themeInMenu = false }) {
   };
 
   return (
-    <>
+    <span ref={wrapperRef} className={styles.wrapper}>
       <button
         type="button"
-        popoverTarget={menuId}
+        popoverTarget={SUPPORTS_POPOVER ? menuId : undefined}
+        onClick={SUPPORTS_POPOVER ? undefined : () => setFallbackOpen((open) => !open)}
+        aria-expanded={SUPPORTS_POPOVER ? undefined : fallbackOpen}
+        aria-controls={SUPPORTS_POPOVER ? undefined : menuId}
         className={cx(styles.trigger, compact && styles.compact)}
         aria-label={`Menu da conta de ${user.name}`}
       >
@@ -68,7 +98,12 @@ export function UserMenu({ compact = false, themeInMenu = false }) {
         <ChevronDown aria-hidden="true" className={styles.chevron} />
       </button>
 
-      <div id={menuId} popover="auto" className={styles.menu}>
+      <div
+        id={menuId}
+        popover={SUPPORTS_POPOVER ? "auto" : undefined}
+        hidden={SUPPORTS_POPOVER ? undefined : !fallbackOpen}
+        className={cx(styles.menu, !SUPPORTS_POPOVER && styles.menuFallback)}
+      >
         <div className={styles.menuHeader}>
           <p className={styles.name}>{user.name}</p>
           <p className={styles.meta}>{user.email ?? formatPhone(user.phone)}</p>
@@ -113,6 +148,6 @@ export function UserMenu({ compact = false, themeInMenu = false }) {
           </p>
         </ConfirmDialog>
       )}
-    </>
+    </span>
   );
 }

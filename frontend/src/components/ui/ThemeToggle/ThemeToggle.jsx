@@ -1,5 +1,4 @@
 import { Monitor, Moon, Sun } from "lucide-react";
-import { useId } from "react";
 
 import { cx } from "@/lib/cx";
 import { useTheme } from "@/theme/ThemeContext";
@@ -13,30 +12,28 @@ const OPTIONS = [
 ];
 
 /**
- * Seletor de tema com rádios nativos estilizados: navegação por setas,
- * leitores de tela e foco funcionam sem JavaScript extra.
+ * Seletor de tema com botões simples (aria-pressed). Botões em vez de rádios
+ * invisíveis sobrepostos: alguns navegadores de celular não repassavam o
+ * toque ao rádio dentro do menu do entregador.
  */
 export function ThemeToggle({ showLabels = false, className }) {
   const { preference, setPreference } = useTheme();
-  const name = useId();
 
   return (
-    <fieldset className={cx(styles.group, className)}>
-      <legend className="sr-only">Tema</legend>
+    <div role="group" aria-label="Tema" className={cx(styles.group, className)}>
       {OPTIONS.map(({ value, label, Icon }) => (
-        <label key={value} className={styles.option} title={label}>
-          <input
-            type="radio"
-            name={name}
-            value={value}
-            checked={preference === value}
-            onChange={() => setPreference(value)}
-            className={styles.input}
-          />
+        <button
+          key={value}
+          type="button"
+          className={styles.option}
+          title={label}
+          aria-pressed={preference === value}
+          onClick={() => setPreference(value)}
+        >
           <Icon aria-hidden="true" className={styles.icon} />
           <span className={showLabels ? styles.label : "sr-only"}>{label}</span>
-        </label>
+        </button>
       ))}
-    </fieldset>
+    </div>
   );
 }

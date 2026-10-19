@@ -1,3 +1,7 @@
+.wrapper {
+  display: inline-flex;
+}
+
 .trigger {
   display: inline-flex;
   align-items: center;
@@ -77,6 +81,18 @@
   background-color: var(--color-surface-raised);
   color: var(--color-text);
   box-shadow: var(--shadow-lg);
+}
+
+/* Sem Popover API (celulares antigos): menu fixo no canto superior direito. */
+.menuFallback {
+  position: fixed;
+  inset: 3.75rem var(--space-4) auto auto;
+  z-index: var(--z-dropdown);
+  margin: 0;
+}
+
+.menuFallback[hidden] {
+  display: none;
 }
 
 /* Navegadores sem anchor positioning: canto superior direito. */
